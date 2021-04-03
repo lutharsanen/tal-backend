@@ -3,6 +3,7 @@ from typing import List
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 from sql_app import crud, models, schemas
 from sql_app.database import SessionLocal, engine
@@ -29,6 +30,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/", include_in_schema=False)
+def main():
+    return RedirectResponse("/docs")
 
 
 @app.get("/test")
