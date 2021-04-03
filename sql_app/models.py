@@ -4,23 +4,16 @@ from sqlalchemy.orm import relationship
 from .database import Base
 
 
-class User(Base):
-    __tablename__ = "users"
+class Video(Base):
+    __tablename__ = "video"
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
-
-    items = relationship("Item", back_populates="owner")
+    id = Column(Integer, primary_key=True)
+    description = Column(String)
 
 
-class Item(Base):
-    __tablename__ = "items"
+class Text(Base):
+    __tablename__ = "text"
 
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    description = Column(String, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"))
-
-    owner = relationship("User", back_populates="items")
+    keyframe_id = Column(String, primary_key=True)
+    text = Column(String)
+    video_id = Column(Integer, ForeignKey("video.id"))

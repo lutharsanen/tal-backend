@@ -2,35 +2,18 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
-class ItemBase(BaseModel):
-    title: str
-    description: Optional[str] = None
+class VideoBase(BaseModel):
+    video_id: int
+    description: str
 
 
-class ItemCreate(ItemBase):
-    pass
-
-
-class Item(ItemBase):
-    id: int
-    owner_id: int
+class Text(VideoBase):
+    keyframe_id: str
+    text: str
 
     class Config:
         orm_mode = True
 
 
-class UserBase(BaseModel):
-    email: str
-
-
-class UserCreate(UserBase):
-    password: str
-
-
-class User(UserBase):
-    id: int
-    is_active: bool
-    items: List[Item] = []
-
-    class Config:
-        orm_mode = True
+class TextInput(BaseModel):
+    text: str
