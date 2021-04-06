@@ -7,9 +7,10 @@ class VideoBase(BaseModel):
     description: str
 
 
-class Text(VideoBase):
+class Text(BaseModel):
     keyframe_id: str
     text: str
+    video_id: int
 
     class Config:
         orm_mode = True

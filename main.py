@@ -42,16 +42,22 @@ def test_api(limit: int):
     return {"data": 2*limit}
 
 
-@app.post("/api/insert-textanalysis")
-def text_analyzer(request: schemas.Text, db: Session = Depends(get_db)):
+@app.post("/api/insert-videoid")
+def text_analyzer(request: schemas.VideoBase, db: Session = Depends(get_db)):
     new_keyframe_video = models.Video(
         id=request.video_id, description=request.description)
-    new_keyframe_text = models.Text(
-        keyframe_id=request.keyframe_id, text=request.text, video_id=request.video_id)
     db.add(new_keyframe_video)
-    db.add(new_keyframe_text)
     db.commit()
     db.refresh(new_keyframe_video)
+    return {"database_update": "success"}
+
+
+@app.post("/api/insert-textanalysis")
+def text_analyzer(request: schemas.Text, db: Session = Depends(get_db)):
+    new_keyframe_text = models.Text(
+        keyframe_id=request.keyframe_id, text=request.text, video_id=request.video_id)
+    db.add(new_keyframe_text)
+    db.commit()
     db.refresh(new_keyframe_text)
     return {"database_update": "success"}
 

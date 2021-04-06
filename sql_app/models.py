@@ -14,6 +14,7 @@ class Video(Base):
 class Text(Base):
     __tablename__ = "text"
 
-    keyframe_id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    keyframe_id = Column(String)
     text = Column(String)
     video_id = Column(Integer, ForeignKey("video.id"))
