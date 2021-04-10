@@ -43,17 +43,27 @@ def test_api(limit: int):
     return {"data": 2*limit}
 
 
-@app.post("/api/insert-videoid")
+@app.post("/api/updateVideo")
 def text_analyzer(request: schemas.VideoBase, db: Session = Depends(get_db)):
     new_keyframe_video = models.Video(
-        id=request.video_id, description=request.description)
+        id=request.video_id, description=request.description, title=request.title, vimeo_id=request.vimeo_id)
     db.add(new_keyframe_video)
     db.commit()
     db.refresh(new_keyframe_video)
     return {"database_update": "success"}
 
 
-@app.post("/api/insert-textanalysis")
+@app.post("/api/updateTags")
+def text_analyzer(request: schemas.Tags, db: Session = Depends(get_db)):
+    new_tag = models.Tags(
+        video_id=request.video_id, tag=request.tag)
+    db.add(new_tag)
+    db.commit()
+    db.refresh(new_tag)
+    return {"database_update": "success"}
+
+
+@app.post("/api/updateTextanalysis")
 def text_analyzer(request: schemas.Text, db: Session = Depends(get_db)):
     new_keyframe_text = models.Text(
         keyframe_id=request.keyframe_id, text=request.text, video_id=request.video_id)
@@ -69,8 +79,35 @@ def get_text(db: Session = Depends(get_db)):
     return video_searched
 
 
-@app.get("/api/specific-text")
+@app.get("/api/all-video")
+def get_text(db: Session = Depends(get_db)):
+    video_searched = db.query(models.Video).all()
+    return video_searched
+
+
+@app.get("/api/searchByVideoText")
 def get_text(text: str, db: Session = Depends(get_db)):
     video_searched = db.query(models.Text).filter(
         models.Text.text.ilike(f'%{text}%')).all()
+    return {"results": video_searched}
+
+
+@app.get("/api/searchByDescription")
+def get_text(text: str, db: Session = Depends(get_db)):
+    video_searched = db.query(models.Video).filter(
+        models.Video.description.ilike(f'%{text}%')).all()
+    return {"results": video_searched}
+
+
+@app.get("/api/searchByTitle")
+def get_text(text: str, db: Session = Depends(get_db)):
+    video_searched = db.query(models.Video).filter(
+        models.Video.title.ilike(f'%{text}%')).all()
+    return {"results": video_searched}
+
+
+@app.get("/api/searchByTag")
+def get_text(text: str, db: Session = Depends(get_db)):
+    video_searched = db.query(models.Tags).filter(
+        tag=text)
     return {"results": video_searched}
