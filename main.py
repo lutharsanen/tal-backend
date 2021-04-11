@@ -79,6 +79,12 @@ def get_text(db: Session = Depends(get_db)):
     return video_searched
 
 
+@app.get("/api/all-tags")
+def get_text(db: Session = Depends(get_db)):
+    video_searched = db.query(models.Tags).all()
+    return video_searched
+
+
 @app.get("/api/all-video")
 def get_text(db: Session = Depends(get_db)):
     video_searched = db.query(models.Video).all()

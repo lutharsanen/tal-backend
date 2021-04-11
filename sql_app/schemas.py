@@ -11,7 +11,7 @@ class VideoBase(BaseModel):
 
 class Tags(BaseModel):
     video_id: int
-    tag: int
+    tag: str
 
 
 class Text(BaseModel):
