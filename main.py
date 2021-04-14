@@ -115,5 +115,5 @@ def get_text(text: str, db: Session = Depends(get_db)):
 @app.get("/api/searchByTag")
 def get_text(text: str, db: Session = Depends(get_db)):
     video_searched = db.query(models.Tags).filter(
-        tag=text)
+        models.Tags.tag.ilike(f'%{text}%')).all()
     return {"results": video_searched}
