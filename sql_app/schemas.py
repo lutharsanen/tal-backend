@@ -18,6 +18,8 @@ class Text(BaseModel):
     keyframe_id: str
     text: str
     video_id: int
+    start_frame: int
+    start_time: float
 
     class Config:
         orm_mode = True

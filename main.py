@@ -66,7 +66,11 @@ def text_analyzer(request: schemas.Tags, db: Session = Depends(get_db)):
 @app.post("/api/updateTextanalysis")
 def text_analyzer(request: schemas.Text, db: Session = Depends(get_db)):
     new_keyframe_text = models.Text(
-        keyframe_id=request.keyframe_id, text=request.text, video_id=request.video_id)
+        keyframe_id=request.keyframe_id, 
+        text=request.text, 
+        video_id=request.video_id, 
+        start_frame=request.start_frame, 
+        start_time=request.start_time)
     db.add(new_keyframe_text)
     db.commit()
     db.refresh(new_keyframe_text)
@@ -115,5 +119,5 @@ def get_text(text: str, db: Session = Depends(get_db)):
 @app.get("/api/searchByTag")
 def get_text(text: str, db: Session = Depends(get_db)):
     video_searched = db.query(models.Tags).filter(
-        tag=text)
+        models.Tags.tag.ilike(f'%{text}%')).all()
     return {"results": video_searched}

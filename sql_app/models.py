@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -29,3 +29,5 @@ class Text(Base):
     keyframe_id = Column(String)
     text = Column(String)
     video_id = Column(Integer, ForeignKey("video.id"))
+    start_frame = Column(Integer)
+    start_time = Column(Float)
