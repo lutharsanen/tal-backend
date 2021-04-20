@@ -46,7 +46,7 @@ def test_api(limit: int):
 @app.post("/api/updateVideo")
 def text_analyzer(request: schemas.VideoBase, db: Session = Depends(get_db)):
     new_keyframe_video = models.Video(
-        id=request.video_id, description=request.description, title=request.title, vimeo_id=request.vimeo_id)
+        video_id=request.video_id, description=request.description, title=request.title, vimeo_id=request.vimeo_id)
     db.add(new_keyframe_video)
     db.commit()
     db.refresh(new_keyframe_video)
@@ -66,10 +66,10 @@ def text_analyzer(request: schemas.Tags, db: Session = Depends(get_db)):
 @app.post("/api/updateTextanalysis")
 def text_analyzer(request: schemas.Text, db: Session = Depends(get_db)):
     new_keyframe_text = models.Text(
-        keyframe_id=request.keyframe_id, 
-        text=request.text, 
-        video_id=request.video_id, 
-        start_frame=request.start_frame, 
+        keyframe_id=request.keyframe_id,
+        text=request.text,
+        video_id=request.video_id,
+        start_frame=request.start_frame,
         start_time=request.start_time)
     db.add(new_keyframe_text)
     db.commit()
