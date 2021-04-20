@@ -8,6 +8,7 @@ from fastapi.responses import RedirectResponse
 from sql_app import crud, models, schemas
 from sql_app.database import SessionLocal, engine
 
+from helper import stemming_algo
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -97,6 +98,7 @@ def get_text(db: Session = Depends(get_db)):
 
 @app.get("/api/searchByVideoText")
 def get_text(text: str, db: Session = Depends(get_db)):
+    text = stemming_algo(text)
     video_searched = db.query(models.Text).filter(
         models.Text.text.ilike(f'%{text}%')).all()
     return {"results": video_searched}
@@ -104,6 +106,7 @@ def get_text(text: str, db: Session = Depends(get_db)):
 
 @app.get("/api/searchByDescription")
 def get_text(text: str, db: Session = Depends(get_db)):
+    text = stemming_algo(text)
     video_searched = db.query(models.Video).filter(
         models.Video.description.ilike(f'%{text}%')).all()
     return {"results": video_searched}
@@ -111,6 +114,7 @@ def get_text(text: str, db: Session = Depends(get_db)):
 
 @app.get("/api/searchByTitle")
 def get_text(text: str, db: Session = Depends(get_db)):
+    text = stemming_algo(text)
     video_searched = db.query(models.Video).filter(
         models.Video.title.ilike(f'%{text}%')).all()
     return {"results": video_searched}
@@ -118,6 +122,7 @@ def get_text(text: str, db: Session = Depends(get_db)):
 
 @app.get("/api/searchByTag")
 def get_text(text: str, db: Session = Depends(get_db)):
+    text = stemming_algo(text)
     video_searched = db.query(models.Tags).filter(
         models.Tags.tag.ilike(f'%{text}%')).all()
     return {"results": video_searched}
