@@ -21,3 +21,5 @@ urllib3==1.26.3
 uvicorn==0.13.4
 wincertstore==0.2
 zipp==3.4.1
+grpcio
+grpcio-tools
