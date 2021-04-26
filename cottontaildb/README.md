@@ -12,9 +12,9 @@ CottontailDB is now up and running on localhost port 1865.
 #-----------------------------------------------------------------------------------------------------------
 ### Using Cottontail DB Docker Image
 
-Cottontail DB is available as Docker Image from [DockerHub](https://hub.docker.com/r/vitrivr/cottontaildb). Please have a look at the repository instructions and/or the [Wiki](https://github.com/vitrivr/cottontaildb/wiki/Setup) for more information.
+Cottontail DB is available as Docker Image from [DockerHub](https://hub.docker.com/r/vitrivr/cottontaildb).
 
-### Connecting to Cottontail DB
-
-Communication with Cottontail DB is facilitated by [gRPC](https://grpc.io/). By default, the gRPC endpoint runs on **port 1865**. To connect to Cottontail DB, you must first generate the model classes and stubs using the gRPC library of your
-preference based on the programming environment you use. You can find the latest gRPC definitions [here](https://github.com/vitrivr/cottontaildb-proto).
+1. Download Docker Hub for Desktop
+2. Pull the docker image via CLI: docker pull vitrivr/cottontaildb
+3. Open Windows PS and mount your container with the github repo: docker run -it --name cottontaildb -p 1865:1865 -v "C:\specify\your\path\tal-backend\cottontaildb\cottontaildb-data:/cottontaildb-data" vitrivr/cottontaildb:latest
+4. You will see that your container is now running. You can now run the cottontaildb.py file, which serves as a client for the database (perform insertions/queries etc.). All the data will be stored in the folder ".\tal-backend\cottontaildb\cottontaildb-data".
