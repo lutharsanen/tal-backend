@@ -322,11 +322,11 @@ class CottontailDBClient:
         from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
         # Projection
         column_name = ColumnName(entity_name,schema)
-        projection_operation = Projection.ProjectionOperation("SELECT")
-        projection_element = Projection.ProjectionElement(columnname = column_name, columnname = column_name)
+        projection_operation = Projection.ProjectionOperation.SELECT
+        projection_element = Projection.ProjectionElement(columnname = column_name)
         projection = Projection(projection_operation, projection_element)
         # KNN
-        distance = Knn.Distance("COSINE")
+        distance = Knn.Distance.Cosine
         knn_hint = self._knn_helper("AllowInexactKnnHint", True)
         vector_query = Vector(FloatVector(vector=query_elements))
         vector_weight = Vector(FloatVector(vector=weight_elements))
@@ -377,5 +377,14 @@ def column_def(name: str, type_: Type, length: int = None, primary: bool = None,
     return ColumnDefinition(**kwargs)
 
 
-def float_vector(*elements):
-    return Literal(vectorData=Vector(floatVector=FloatVector(vector=elements)))
+def float_vector(elements):
+    #print(elements)
+    float_vector_value = FloatVector(vector=elements)
+    #print("1", float_vector_value)
+    vector_el = Vector(floatVector=float_vector_value)
+    #print("vector_el",vector_el)
+    response = Literal(vectorData=vector_el)
+    #print(response)
+    return response
+
+
