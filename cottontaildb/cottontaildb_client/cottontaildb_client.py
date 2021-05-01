@@ -2,11 +2,12 @@ import grpc
 from google.protobuf.empty_pb2 import Empty
 from typing import List
 
-from .cottontail_pb2 import SchemaName, CreateSchemaMessage, DropSchemaMessage, EntityName, ColumnDefinition, \
-    EntityDefinition, CreateEntityMessage, Engine, InsertMessage, ColumnName, Scan, From, Type, ListSchemaMessage, \
-    ListEntityMessage, EntityDetailsMessage, DropEntityMessage, TruncateEntityMessage, OptimizeEntityMessage, \
-    IndexName, IndexDefinition, IndexType, CreateIndexMessage, DropIndexMessage, RebuildIndexMessage, UpdateMessage, \
-    DeleteMessage, Literal, Vector, FloatVector
+#from .cottontail_pb2 import SchemaName, CreateSchemaMessage, DropSchemaMessage, EntityName, ColumnDefinition, \
+#    EntityDefinition, CreateEntityMessage, Engine, InsertMessage, ColumnName, Scan, From, Type, ListSchemaMessage, \
+#    ListEntityMessage, EntityDetailsMessage, DropEntityMessage, TruncateEntityMessage, OptimizeEntityMessage, \
+#    IndexName, IndexDefinition, IndexType, CreateIndexMessage, DropIndexMessage, RebuildIndexMessage, UpdateMessage, \
+#    DeleteMessage, Literal, Vector, FloatVector, Knn
+from .cottontail_pb2 import *
 from .cottontail_pb2_grpc import DDLStub, DMLStub, TXNStub, DQLStub
 
 
@@ -288,6 +289,7 @@ class CottontailDBClient:
         self._dql.Ping(Empty())
 
     # TODO: Query
+    
 
     @staticmethod
     def _parse_query_response(response):
@@ -306,6 +308,46 @@ class CottontailDBClient:
                     for column, value in values.items()]
         return InsertMessage(txId=self._tid, **from_kwarg, inserts=elements)
 
+############################# own code #################################################
+
+    # knn uses query and uses knn as a
+    def knn(self):
+        self._dql.Query(Knn())
+
+
+    def _query_helper(self, schema, entity,query_elements, weight_elements):
+        # From
+        schema_name = SchemaName(name = schema)
+        entity_name = EntityName(schema=schema_name, name=entity)
+        from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
+        # Projection
+        column_name = ColumnName(entity_name,schema)
+        projection_operation = Projection.ProjectionOperation("SELECT")
+        projection_element = Projection.ProjectionElement(columnname = column_name, columnname = column_name)
+        projection = Projection(projection_operation, projection_element)
+        # KNN
+        distance = Knn.Distance("COSINE")
+        knn_hint = self._knn_helper("AllowInexactKnnHint", True)
+        vector_query = Vector(FloatVector(vector=query_elements))
+        vector_weight = Vector(FloatVector(vector=weight_elements))
+        # Order
+        order = Order.Component(column_name, Order.Direction("ASCENDING"))
+
+    def _knn_helper(self, mode, allow,min,max ):
+        if mode == "NoIndexKnnHint":
+            return KnnHint.NoIndexKnnHint()
+        elif mode == "AllowInexactKnnHint":
+            return KnnHint.AllowInexactKnnHint(allow)
+        #no Indextypeknn and IndexNameKnnHint hints possible
+        #elif mode == "IndexTypeKnnHint":
+        #    pass
+        #elif mode == "IndexNameKnnHint":
+        #    pass
+        elif mode =="ParallelKnnHint":
+            return KnnHint.ParallelKnnHint(min, max)
+        else:
+            return TypeError("mode not implemented")
+####################################################################################
 
 def column_def(name: str, type_: Type, length: int = None, primary: bool = None, nullable: bool = None,
                engine: Engine = Engine.MAPDB):

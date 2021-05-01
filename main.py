@@ -39,7 +39,7 @@ def main():
     return RedirectResponse("/docs")
 
 
-@app.get("/test")
+@app.get("/test-cottontail")
 def test_api(limit: int):
     return {"data": 2*limit}
 
