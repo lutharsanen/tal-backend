@@ -9,6 +9,7 @@ from sql_app import crud, models, schemas
 from sql_app.database import SessionLocal, engine
 
 from helper import stemming_algo
+import numpy as np
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -126,3 +127,30 @@ def get_text(text: str, db: Session = Depends(get_db)):
     video_searched = db.query(models.Tags).filter(
         models.Tags.tag.ilike(f'%{text}%')).all()
     return {"results": video_searched}
+
+@app.get("api/searchByColorSketch")
+def get_sketch(request: schemas.ColorSketchInput):
+    color_query = np.array(request.color)
+    sketch_query = np.array(request.sketch)
+    ######### do some cottontail knn query #################
+
+    ########################################################
+    return {"result": "TAL"}
+
+@app.get("api/searchByColor")
+def get_sketch(request: schemas.ColorInput):
+    color_query = np.array(request.color)
+    ######### do some cottontail knn query #################
+
+    ########################################################
+    return {"result": "TAL"}
+
+@app.get("api/searchByObjectSketch")
+def get_sketch(request: schemas.ObjectSketchInput):
+    object_query = request.object
+    sketch_query = np.array(request.sketch)
+    ######### do some cottontail knn query #################
+
+    ########################################################
+    return {"result": "TAL"}
+
