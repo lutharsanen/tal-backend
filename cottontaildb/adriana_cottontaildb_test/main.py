@@ -11,7 +11,7 @@ import setup
 channel = grpc.insecure_channel('localhost:1865')
 
 reset.reset(channel)
-# setup.setup(channel)
+setup.setup(channel)
 
 # import_description_feature.do(channel)
 # import_classification_feature.do(channel)
