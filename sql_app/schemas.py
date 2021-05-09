@@ -27,3 +27,14 @@ class Text(BaseModel):
 
 class TextInput(BaseModel):
     text: str
+
+class ColorSketchInput(BaseModel):
+    color: list
+    sketch: list
+
+class ColorInput(BaseModel):
+    color: list
+    
+class ObjectSketchInput(BaseModel):
+    object: str
+    sketch: list
