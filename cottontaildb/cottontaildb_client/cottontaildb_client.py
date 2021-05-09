@@ -373,11 +373,13 @@ def column_def(name: str, type_: Type, length: int = None, primary: bool = None,
 
 
 def float_vector(elements):
-    #print(elements)
     float_vector_value = FloatVector(vector=elements)
-    #print("1", float_vector_value)
     vector_el = Vector(floatVector=float_vector_value)
-    #print("vector_el",vector_el)
     response = Literal(vectorData=vector_el)
-    #print(response)
+    return response
+
+def int_vector(elements):
+    int_vector_value = IntVector(vector=elements)
+    vector_el = Vector(intVector=int_vector_value)
+    response = Literal(vectorData=vector_el)
     return response
