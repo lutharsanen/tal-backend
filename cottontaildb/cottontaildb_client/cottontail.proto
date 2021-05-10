@@ -117,7 +117,7 @@ message IndexName {
 }
 
 /** Identifier for a single column. */
-message ColumnName {
+message {
     EntityName entity = 1;
     string name = 2;
 }

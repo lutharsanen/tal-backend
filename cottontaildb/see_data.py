@@ -8,5 +8,5 @@ from detectron2.utils.logger import setup_logger
 import cv2
 
 with CottontailDBClient('localhost', 1865) as client:
-    details = client.get_entity_details('tal_db', 'color_sketch')
-    print(details)
+    result = client.select("tal_db","color_sketch")
+    print(list(result))

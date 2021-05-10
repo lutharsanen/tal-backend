@@ -6,6 +6,28 @@ from .cottontail_pb2 import *
 from .cottontail_pb2_grpc import DDLStub, DMLStub, TXNStub, DQLStub
 
 
+def float_vector(elements):
+    float_vector_value = FloatVector(vector=elements)
+    vector_el = Vector(floatVector=float_vector_value)
+    response = Literal(vectorData=vector_el)
+    return response
+
+def int_vector(elements):
+    int_vector_value = IntVector(vector=elements)
+    vector_el = Vector(intVector=int_vector_value)
+    response = Literal(vectorData=vector_el)
+    return response
+
+def float_vector_query(elements):
+    float_vector_value = FloatVector(vector=elements)
+    vector_el = Vector(floatVector=float_vector_value)
+    return vector_el
+
+def int_vector_query(elements):
+    int_vector_value = IntVector(vector=elements)
+    vector_el = Vector(intVector=int_vector_value)
+    return vector_el
+
 class CottontailDBClient:
     def __init__(self, host, port, with_transaction=False):
         self._host = host
@@ -288,42 +310,53 @@ class CottontailDBClient:
      ############################# own code #################################################
 
     # knn uses query and uses knn as a
-    def knn(self):
-        self._dql.Query(Knn())
+    def knn(self,input_vector, schema, entity):
+        k = 1
+        if type(input_vector[0] == float):
+            vector = float_vector_query(input_vector)
+        else:
+            vector = int_vector_query(input_vector)
 
-
-    def _query_helper(self, schema, entity,query_elements, weight_elements):
         # From
         schema_name = SchemaName(name = schema)
         entity_name = EntityName(schema=schema_name, name=entity)
+        column_name = ColumnName(entity = entity_name, name = "sketch_vector")
+        column_id = ColumnName(entity = entity_name, name = "id")
+        column_distance = ColumnName(entity = entity_name, name = "distance")
         from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
-        # Projection
-        column_name = ColumnName(entity_name,schema)
-        projection_operation = Projection.ProjectionOperation.SELECT
-        projection_element = Projection.ProjectionElement(columnname = column_name)
-        projection = Projection(projection_operation, projection_element)
         # KNN
-        distance = Knn.Distance.Cosine
-        knn_hint = self._knn_helper("AllowInexactKnnHint", True)
-        vector_query = Vector(FloatVector(vector=query_elements))
-        vector_weight = Vector(FloatVector(vector=weight_elements))
-        # Order
-        order = Order.Component(column_name, Order.Direction("ASCENDING"))
+        distance = Knn.Distance.L2
+        knn = Knn(attribute = column_name, k= k, query = vector, distance = distance)
+        # Projection
+        projection_one = Projection.ProjectionElement(column = column_id)
+        projection_two = Projection.ProjectionElement(column = column_distance)
+        projection_element = [projection_one, projection_two]
+        projection = Projection(columns  = projection_element)
+        query = Query(**from_kwarg, projection = projection, knn = knn)
+        query_message = QueryMessage(txId=self._tid, query = query)
+        result = self._dql.Query(query_message)
+        return result
 
-    def _knn_helper(self, mode, allow,min,max ):
-        if mode == "NoIndexKnnHint":
-            return KnnHint.NoIndexKnnHint()
-        elif mode == "AllowInexactKnnHint":
-            return KnnHint.AllowInexactKnnHint(allow)
-        #no Indextypeknn and IndexNameKnnHint hints possible
-        #elif mode == "IndexTypeKnnHint":
-        #    pass
-        #elif mode == "IndexNameKnnHint":
-        #    pass
-        elif mode =="ParallelKnnHint":
-            return KnnHint.ParallelKnnHint(min, max)
-        else:
-            return TypeError("mode not implemented")
+
+    def select(self, schema, entity):
+        # From
+        schema_name = SchemaName(name = schema)
+        entity_name = EntityName(schema=schema_name, name=entity)
+        column_name = ColumnName(entity = entity_name, name = "sketch_vector")
+        column_id = ColumnName(entity = entity_name, name = "video_id")
+        # Projection
+        projection_one = Projection.ProjectionElement(column = column_name)
+        projection_two = Projection.ProjectionElement(column = column_id)
+        #projection_element = [projection_one, projection_two]
+        from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
+        #projection = Projection(columns  = projection_element)
+        projection = Projection(columns = projection_two)
+        query = Query(**from_kwarg, projection = projection)
+        query_message = QueryMessage(txId=self._tid, query = query)
+        result = self._dql.Query(query_message)
+
+        return result 
+
 ####################################################################################
 
     @staticmethod
@@ -371,15 +404,3 @@ def column_def(name: str, type_: Type, length: int = None, primary: bool = None,
 
     return ColumnDefinition(**kwargs)
 
-
-def float_vector(elements):
-    float_vector_value = FloatVector(vector=elements)
-    vector_el = Vector(floatVector=float_vector_value)
-    response = Literal(vectorData=vector_el)
-    return response
-
-def int_vector(elements):
-    int_vector_value = IntVector(vector=elements)
-    vector_el = Vector(intVector=int_vector_value)
-    response = Literal(vectorData=vector_el)
-    return response
