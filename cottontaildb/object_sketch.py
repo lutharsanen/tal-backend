@@ -6,14 +6,16 @@ import numpy as np
 import os, json, cv2, random
 from cottontail_helper import get_all_filesname, get_keyframe_id
 from cottontaildb_client import CottontailDBClient, Literal, float_vector, int_vector
-
+import multiprocessing
+from multiprocessing import Process
+from tqdm import tqdm
 
 # import some common detectron2 utilities
 from detectron2 import model_zoo
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
-from detectron2.data import MetadataCatalog, DatasetCatalog
+from detectron2.data import MetadataCatalog
 
 def store_classe_sketch_from_box(image, video_id, keyframe_id):
     detectron2_img = cv2.imread(image)
@@ -40,23 +42,26 @@ def store_classe_sketch_from_box(image, video_id, keyframe_id):
                 'keyframe_id': Literal(intData=int(keyframe_id)), 
                 'sketch_vector': float_vector(box),
                 'object': Literal(stringData = object)}
-            print(entry)
             client.insert('tal_db', 'object_sketch', entry)
 
-# change this path according to your computer
-path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
 
 def run(path):
     video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))
     failed = {}
-    for videonr in video_filelist:
-        failed[videonr] = []
+    for videonr in tqdm(video_filelist):
+        #failed[videonr] = []
         for filename in get_all_filesname(f"{path}/home/keyframes_filtered/{videonr}"):
-            keyframe_id = videonr,get_keyframe_id(filename,videonr,path)
+            keyframe_id = int(get_keyframe_id(filename,videonr,path))
             image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
-            try:
-                store_classe_sketch_from_box(image, videonr, keyframe_id)
-            except:
-                failed[videonr].append(filename)
+            #try:
+            store_classe_sketch_from_box(image, videonr, keyframe_id)        
+        
     with open("failed_object_sketch.json", "w") as fi:
         fi.write(json.dumps(failed))
+
+
+
+# change this path according to your computer
+path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
+
+run(path)

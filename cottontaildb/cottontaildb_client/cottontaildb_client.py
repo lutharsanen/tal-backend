@@ -310,51 +310,85 @@ class CottontailDBClient:
      ############################# own code #################################################
 
     # knn uses query and uses knn as a
-    def knn(self,input_vector, schema, entity):
+    def knn(self,input_vector, schema, entity, searched_column_name, generated_column_names):
         k = 1
         if type(input_vector[0] == float):
             vector = float_vector_query(input_vector)
         else:
             vector = int_vector_query(input_vector)
-
         # From
         schema_name = SchemaName(name = schema)
         entity_name = EntityName(schema=schema_name, name=entity)
-        column_name = ColumnName(entity = entity_name, name = "sketch_vector")
-        column_id = ColumnName(entity = entity_name, name = "id")
-        column_distance = ColumnName(entity = entity_name, name = "distance")
+        searched_column = ColumnName(entity = entity_name, name = searched_column_name)
         from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
         # KNN
         distance = Knn.Distance.L2
-        knn = Knn(attribute = column_name, k= k, query = vector, distance = distance)
+        knn = Knn(attribute = searched_column, k= k, query = vector, distance = distance)
         # Projection
-        projection_one = Projection.ProjectionElement(column = column_id)
-        projection_two = Projection.ProjectionElement(column = column_distance)
-        projection_element = [projection_one, projection_two]
-        projection = Projection(columns  = projection_element)
+        projection_elements = []
+        for column_name in generated_column_names:
+            column = ColumnName(entity = entity_name, name = column_name)
+            projection_element = Projection.ProjectionElement(column = column)
+            projection_elements.append(projection_element)
+        projection = Projection(columns  = projection_elements)
+        # Query
         query = Query(**from_kwarg, projection = projection, knn = knn)
         query_message = QueryMessage(txId=self._tid, query = query)
         result = self._dql.Query(query_message)
         return result
 
 
-    def select(self, schema, entity):
-        # From
+    def select(self, schema, entity, column_names):
+        # Base
         schema_name = SchemaName(name = schema)
         entity_name = EntityName(schema=schema_name, name=entity)
-        column_name = ColumnName(entity = entity_name, name = "sketch_vector")
-        column_id = ColumnName(entity = entity_name, name = "video_id")
         # Projection
-        projection_one = Projection.ProjectionElement(column = column_name)
-        projection_two = Projection.ProjectionElement(column = column_id)
-        #projection_element = [projection_one, projection_two]
+        projection_elements = []
+        for column_name in column_names:
+            column = ColumnName(entity = entity_name, name = column_name)
+            projection_element = Projection.ProjectionElement(column = column)
+            projection_elements.append(projection_element)
+        projection = Projection(columns  = projection_elements)
+        # From
         from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
-        #projection = Projection(columns  = projection_element)
-        projection = Projection(columns = projection_two)
+        # Query
         query = Query(**from_kwarg, projection = projection)
+        # Query Message
         query_message = QueryMessage(txId=self._tid, query = query)
         result = self._dql.Query(query_message)
+        return result 
 
+    def select_where(self, schema, entity, column_names, searched_column, search_words):
+        # Base
+        schema_name = SchemaName(name = schema)
+        entity_name = EntityName(schema=schema_name, name=entity)
+        # From
+        from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
+        # Projection
+        projection_elements = []
+        for column_name in column_names:
+            column = ColumnName(entity = entity_name, name = column_name)
+            projection_element = Projection.ProjectionElement(column = column)
+            projection_elements.append(projection_element)
+        projection = Projection(columns  = projection_elements)
+        # Where
+        column_searched = ColumnName(entity = entity_name, name = searched_column)
+        literal = []
+        for word in search_words:
+            add_literal = Literal(stringData = word)
+            literal.append(add_literal)
+        literals = Literals(literal = literal)
+        boolean_operand = AtomicBooleanOperand(literals = literals)
+        atomic = AtomicBooleanPredicate(
+            left = column_searched, 
+            op = ComparisonOperator.LIKE, 
+            right = boolean_operand)
+        where = Where(atomic = atomic)
+        # Query
+        query = Query(**from_kwarg, projection = projection, where = where)
+        # Query Message
+        query_message = QueryMessage(txId=self._tid, query = query)
+        result = self._dql.Query(query_message)
         return result 
 
 ####################################################################################

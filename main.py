@@ -13,6 +13,8 @@ import numpy as np
 
 models.Base.metadata.create_all(bind=engine)
 
+from cottontaildb.cottontaildb_client import CottontailDBClient, Type, Literal, column_def, float_vector
+
 
 app = FastAPI()
 
@@ -133,15 +135,18 @@ def get_sketch(request: schemas.ColorSketchInput):
     color_query = np.array(request.color)
     sketch_query = np.array(request.sketch)
     ######### do some cottontail knn query #################
-
+    with CottontailDBClient('localhost', 1865) as client:
+        result_color = client.knn(color_query, "tal_db","color_sketch","color_vector", ["id", "distance"])
+        result_sketch = client.knn(sketch_query,"tal_db","color_sketch","sketch_vector", ["id", "distance"])
     ########################################################
     return {"result": "TAL"}
 
 @app.get("api/searchByColor")
 def get_sketch(request: schemas.ColorInput):
-    color_query = np.array(request.color)
+    color_query = request.color
     ######### do some cottontail knn query #################
-
+    with CottontailDBClient('localhost', 1865) as client:
+        result_color = client.knn(color_query, "tal_db","color_image","color_vector", ["id", "distance"])
     ########################################################
     return {"result": "TAL"}
 
@@ -150,7 +155,9 @@ def get_sketch(request: schemas.ObjectSketchInput):
     object_query = request.object
     sketch_query = np.array(request.sketch)
     ######### do some cottontail knn query #################
-
+    with CottontailDBClient('localhost', 1865) as client:
+        result_sketch = client.knn(sketch_query, "tal_db","object_sketch","sketch_vector", ["id", "distance"])
+        object_result = client.select_where(sketch_query, "tal_db","object_sketch")
     ########################################################
     return {"result": "TAL"}
 
