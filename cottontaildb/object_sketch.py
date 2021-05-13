@@ -5,7 +5,7 @@ import detectron2
 import numpy as np
 import os, json, cv2, random
 from cottontail_helper import get_all_filesname, get_keyframe_id
-from cottontaildb_client import CottontailDBClient, Literal, float_vector, int_vector
+from cottontaildb_client import CottontailDBClient, Literal, float_vector
 import multiprocessing
 from multiprocessing import Process
 from tqdm import tqdm
@@ -38,7 +38,7 @@ def store_classe_sketch_from_box(image, video_id, keyframe_id):
         with CottontailDBClient('localhost', 1865) as client:
         # Insert entry
             entry = {
-                'video_id': Literal(intData=int(video_id)),
+                'video_id': Literal(stringData=str(video_id)),
                 'keyframe_id': Literal(intData=int(keyframe_id)), 
                 'sketch_vector': float_vector(box),
                 'object': Literal(stringData = object)}
@@ -46,15 +46,18 @@ def store_classe_sketch_from_box(image, video_id, keyframe_id):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))
+    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[:100]
     failed = {}
     for videonr in tqdm(video_filelist):
-        #failed[videonr] = []
+        failed[videonr] = []
         for filename in get_all_filesname(f"{path}/home/keyframes_filtered/{videonr}"):
-            keyframe_id = int(get_keyframe_id(filename,videonr,path))
-            image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
-            #try:
-            store_classe_sketch_from_box(image, videonr, keyframe_id)        
+            if filename != "Thumbs.db":
+                keyframe_id = int(get_keyframe_id(filename,videonr,path))
+                image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
+                try:
+                    store_classe_sketch_from_box(image, videonr, keyframe_id)
+                except:
+                    failed[videonr].append(filename)
         
     with open("failed_object_sketch.json", "w") as fi:
         fi.write(json.dumps(failed))

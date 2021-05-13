@@ -1,7 +1,7 @@
 # import some common libraries
 from PIL import Image
 from cottontail_helper import get_all_filesname, get_keyframe_id
-from cottontaildb_client import CottontailDBClient, Literal, int_vector
+from cottontaildb_client import CottontailDBClient, Literal, float_vector
 import os
 import multiprocessing
 from multiprocessing import Process
@@ -43,11 +43,9 @@ def processing(files,videonr,path, core_nr):
         with CottontailDBClient('localhost', 1865) as client:
             # Insert entry
             entry = {
-                'video_id': Literal(intData=int(videonr)),
+                'video_id': Literal(stringData=str(videonr)),
                 'keyframe_id': Literal(intData=int(keyframe_id)), 
-                'dominant_color_one': int_vector(list(color)),
-                'dominant_color_two': int_vector(list(color)),
-                'dominant_color_three': int_vector(list(color))
+                'dominant_color_vector': float_vector(list(color)),
             }
             client.insert('tal_db', 'color_image', entry)
             os.remove(f"quantized_color_{core_nr}.png")

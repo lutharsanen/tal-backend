@@ -64,7 +64,7 @@ def store_color_sketch(image, video_id, keyframe_id):
         with CottontailDBClient('localhost', 1865) as client:
             # Insert entry
             entry = {
-                'video_id': Literal(intData=int(video_id)),
+                'video_id': Literal(stringData=str(video_id)),
                 'keyframe_id': Literal(intData=int(keyframe_id)), 
                 'sketch_vector': float_vector(box.tolist()),
                 'color_vector': int_vector(dominant_color)}

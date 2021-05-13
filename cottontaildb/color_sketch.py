@@ -6,7 +6,7 @@ from detectron2.utils.logger import setup_logger
 import numpy as np
 import os, cv2
 from cottontail_helper import get_all_filesname, get_keyframe_id
-from cottontaildb_client import CottontailDBClient, Literal, float_vector, int_vector
+from cottontaildb_client import CottontailDBClient, Literal, float_vector
 import json
 import multiprocessing
 from multiprocessing import Process
@@ -64,10 +64,10 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id):
         with CottontailDBClient('localhost', 1865) as client:
             # Insert entry
             entry = {
-                'video_id': Literal(intData=int(video_id)),
+                'video_id': Literal(stringData=str(video_id)),
                 'keyframe_id': Literal(intData=int(keyframe_id)), 
                 'sketch_vector': float_vector(box.tolist()),
-                'color_vector': int_vector(dominant_color)}
+                'color_vector': float_vector(dominant_color)}
             client.insert('tal_db', 'color_sketch', entry)
         # store rgb, border boxes, keyframe id and video id in database 
 
