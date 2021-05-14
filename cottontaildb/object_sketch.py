@@ -44,7 +44,7 @@ def store_classe_sketch_from_box(image, video_id, keyframe_id):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[:100]
+    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[:5]
     failed = {}
     for videonr in tqdm(video_filelist):
         failed[videonr] = []

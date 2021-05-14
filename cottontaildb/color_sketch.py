@@ -21,22 +21,23 @@ from math import sqrt
 from PIL import Image
 
 COLORS = (
-    (0,0,0),
-    (255,255,255),
-    (255,0,0),
-    (0,255,0),
-    (0,0,255),
-    (255,255,0),
-    (0,255,255),
-    (255,0,255),
-    (192,192,192),
-    (128,128,128),
-    (128,0,0),
-    (128,128,0),
-    (0,128,0),
-    (128,0,128),
-    (0,128,128),
-    (0,0,128)
+    (0,0,0), #black 
+    (255,255,255), #white
+    (255,0,0), #red
+    (0,255,0), #lime
+    (0,0,255), #blue
+    (255,255,0), #yellow
+    (0,255,255), #cyan
+    (255,0,255), #magenta
+    (192,192,192), #silver
+    (128,128,128), #gray
+    (128,0,0), #maroon
+    (128,128,0), #olive
+    (0,128,0), #green
+    (128,0,128), #purple
+    (0,128,128), #teal
+    (0,0,128), #navy
+    (255,165,0) #orange
 )
 
 def closest_color(rgb):
@@ -93,7 +94,7 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[:30]
+    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[:5]
     failed = {}
     for videonr in tqdm(video_filelist):
         failed[videonr] = []

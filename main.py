@@ -137,6 +137,7 @@ def get_text(text: str, db: Session = Depends(get_db)):
 @app.post("/api/searchByColorSketch")
 def get_sketch(request: schemas.ColorSketchInput):
     color_query = [request.r,request.g,request.b]
+    # (x1,y1) is lower left and (x2,y2) is upper right
     sketch_query = [request.x1,request.y1,request.x2,request.y2]
     ######### do some cottontail knn query #################
     with CottontailDBClient('localhost', 1865) as client:
@@ -169,6 +170,7 @@ def get_sketch(request: schemas.ColorInput):
 @app.get("/api/searchByObjectSketch")
 def get_sketch(object:str, x1: float, y1:float, x2:float, y2:float):
     object_query = object
+    # (x1,y1) is lower left and (x2,y2) is upper right
     sketch_query = [x1,y1,x2,y2] # list of 4 elements
     
     ######### do some cottontail knn query #################
