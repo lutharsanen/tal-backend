@@ -28,15 +28,19 @@ with CottontailDBClient('localhost', 1865) as client:
     #print(client.get_entity_details("tal_db", "color_image"))
     #print(client.get_entity_details("tal_db", "object_sketch"))
     
-    result_sketch = client.knn([1.3,1.3,4.7,2.4],"tal_db","color_sketch","sketch_vector", ["video_id", "keyframe_id", "distance"],5000)
+    result_sketch = client.knn([1.3,1.3,4.7,2.4],"tal_db","color_sketch","sketch_vector", ["video_id", "keyframe_id", "distance"],500)
     df_sketch = cottontail_to_df(result_sketch, "sketch_vector")
 
-    result_color = client.knn([32,23,250],"tal_db","color_sketch","color_vector", ["video_id", "keyframe_id", "distance"],5000)
+    result_color = client.knn([32,23,250],"tal_db","color_sketch","color_vector", ["video_id", "keyframe_id", "distance"],500)
 
     df_color = cottontail_to_df(result_color, "color_vector")
 
     merged_df = pd.merge(df_sketch,df_color,on=['video_id',"keyframe_id"])
 
-    print(merged_df)
+    merged_df["distance"] = 0.5 * merged_df["color_vector"] + 0.5 * merged_df["sketch_vector"]
+    merged_df = merged_df.drop(['color_vector', 'sketch_vector'], axis=1).sort_values(by=['distance'])
+
+    
+    print(merged_df.head(10).to_dict(orient="records"))
 
     ########################################################

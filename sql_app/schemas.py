@@ -29,8 +29,13 @@ class TextInput(BaseModel):
     text: str
 
 class ColorSketchInput(BaseModel):
-    color: list
-    sketch: list
+    r: float
+    g: float
+    b: float
+    x1: float
+    y1: float
+    x2: float
+    y2: float
 
 class ColorInput(BaseModel):
     color: list

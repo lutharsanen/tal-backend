@@ -8,8 +8,9 @@ from fastapi.responses import RedirectResponse
 from sql_app import crud, models, schemas
 from sql_app.database import SessionLocal, engine
 
-from helper import stemming_algo
+from helper import stemming_algo, cottontail_to_df
 import numpy as np
+import pandas as pd
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -133,16 +134,28 @@ def get_text(text: str, db: Session = Depends(get_db)):
 
 ################ Cottonttail API-Calls ############################
 
-@app.get("/api/searchByColorSketch")
+@app.post("/api/searchByColorSketch")
 def get_sketch(request: schemas.ColorSketchInput):
-    color_query = np.array(request.color)
-    sketch_query = np.array(request.sketch)
+    color_query = [request.r,request.g,request.b]
+    sketch_query = [request.x1,request.y1,request.x2,request.y2]
     ######### do some cottontail knn query #################
     with CottontailDBClient('localhost', 1865) as client:
-        result_color = client.knn(color_query, "tal_db","color_sketch","color_vector", ["id", "distance"])
-        result_sketch = client.knn(sketch_query,"tal_db","color_sketch","sketch_vector", ["id", "distance"])
+        result_sketch = client.knn(sketch_query,"tal_db","color_sketch","sketch_vector", ["video_id", "keyframe_id", "distance"],500)
+        df_sketch = cottontail_to_df(result_sketch, "sketch_vector")
+
+        result_color = client.knn(color_query,"tal_db","color_sketch","color_vector", ["video_id", "keyframe_id", "distance"],500)
+
+        df_color = cottontail_to_df(result_color, "color_vector")
+
+        merged_df = pd.merge(df_sketch,df_color,on=['video_id',"keyframe_id"])
+
+        merged_df["distance"] = 0.5 * merged_df["color_vector"] + 0.5 * merged_df["sketch_vector"]
+        merged_df = merged_df.drop(['color_vector', 'sketch_vector'], axis=1).sort_values(by=['distance'])
+    
+        response = merged_df.head(10).to_dict(orient="records")
+
     ########################################################
-    return {"result": "TAL"}
+    return {"result": response}
 
 @app.get("/api/searchByColor")
 def get_sketch(request: schemas.ColorInput):
