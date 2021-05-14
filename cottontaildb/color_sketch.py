@@ -8,8 +8,7 @@ import os, cv2
 from cottontail_helper import get_all_filesname, get_keyframe_id
 from cottontaildb_client import CottontailDBClient, Literal, float_vector
 import json
-import multiprocessing
-from multiprocessing import Process
+from tqdm import tqdm
 
 # import some common detectron2 utilities
 from detectron2 import model_zoo
@@ -18,32 +17,52 @@ from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog, DatasetCatalog
 
-import math
+from math import sqrt
 from PIL import Image
 
+COLORS = (
+    (0,0,0),
+    (255,255,255),
+    (255,0,0),
+    (0,255,0),
+    (0,0,255),
+    (255,255,0),
+    (0,255,255),
+    (255,0,255),
+    (192,192,192),
+    (128,128,128),
+    (128,0,0),
+    (128,128,0),
+    (0,128,0),
+    (128,0,128),
+    (0,128,128),
+    (0,0,128)
+)
 
-def find_dominant_color(filename):
+def closest_color(rgb):
+    r, g, b = rgb
+    color_diffs = []
+    for color in COLORS:
+        cr, cg, cb = color
+        color_diff = sqrt(abs(r - cr)**2 + abs(g - cg)**2 + abs(b - cb)**2)
+        color_diffs.append((color_diff, color))
+    return min(color_diffs)[1]
+
+def find_dominant_color(image):
     #Resizing parameters
     width, height = 150,150
-    image = Image.open(filename)
     image = image.resize((width, height),resample = 0)
     #Get colors from image object
     pixels = image.getcolors(width * height)
     #Sort them by count number(first element of tuple)
     sorted_pixels = sorted(pixels, key=lambda t: t[0])
-    print(sorted_pixels)
     #Get the most frequent color
     dominant_color = sorted_pixels[-1][1]
-    #print(dominant_color)
-    return dominant_color
+    return closest_color(dominant_color)
 
 
-def store_color_sketch_from_masks(image, video_id, keyframe_id):
-    im = Image.open(image) 
-    im_quantized = im.quantize(256)
-    im_quantized.save("quantized.png")
-    Image.open("quantized.png") 
-    detectron2_img = cv2.imread("quantized.png")
+def store_color_sketch_from_masks(image, video_id, keyframe_id):  
+    detectron2_img = cv2.imread(image)
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set threshold for this model
@@ -55,10 +74,10 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id):
     #masks = outputs["instances"].pred_masks.cpu().numpy()
     boxes = outputs["instances"].pred_boxes.tensor.cpu().numpy()
     
+    im = Image.open(image)
     for box in boxes:
-        im_crop = im_quantized.crop(tuple(box))
-        im_crop.save('temporary_image.png', quality=95)
-        dominant_color = list(find_dominant_color("temporary_image.png"))
+        im_crop = im.crop(tuple(box))
+        dominant_color = list(find_dominant_color(im_crop))
         
         ###### cottontail db logic ######
         with CottontailDBClient('localhost', 1865) as client:
@@ -76,7 +95,7 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id):
 def run(path):
     video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[:30]
     failed = {}
-    for videonr in video_filelist:
+    for videonr in tqdm(video_filelist):
         failed[videonr] = []
         for filename in get_all_filesname(f"{path}/home/keyframes_filtered/{videonr}"):
             keyframe_id = get_keyframe_id(filename,videonr,path)
@@ -85,12 +104,10 @@ def run(path):
                 store_color_sketch_from_masks(image, videonr, keyframe_id)
             except:
                 failed[videonr].append(filename)
-            break
-        break
 
        
     
-    with open("failed_object_sketch.json", "w") as fi:
+    with open("failed_color_sketch.json", "w") as fi:
         fi.write(json.dumps(failed))
     
 

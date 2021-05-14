@@ -6,8 +6,6 @@ import numpy as np
 import os, json, cv2, random
 from cottontail_helper import get_all_filesname, get_keyframe_id
 from cottontaildb_client import CottontailDBClient, Literal, float_vector
-import multiprocessing
-from multiprocessing import Process
 from tqdm import tqdm
 
 # import some common detectron2 utilities

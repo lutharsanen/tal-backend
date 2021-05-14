@@ -14,7 +14,8 @@ import numpy as np
 models.Base.metadata.create_all(bind=engine)
 
 from cottontaildb.cottontaildb_client import CottontailDBClient, Type, Literal, column_def, float_vector
-
+from google.protobuf.json_format import MessageToDict
+import json
 
 app = FastAPI()
 
@@ -130,7 +131,9 @@ def get_text(text: str, db: Session = Depends(get_db)):
         models.Tags.tag.ilike(f'%{text}%')).all()
     return {"results": video_searched}
 
-@app.get("api/searchByColorSketch")
+################ Cottonttail API-Calls ############################
+
+@app.get("/api/searchByColorSketch")
 def get_sketch(request: schemas.ColorSketchInput):
     color_query = np.array(request.color)
     sketch_query = np.array(request.sketch)
@@ -141,7 +144,7 @@ def get_sketch(request: schemas.ColorSketchInput):
     ########################################################
     return {"result": "TAL"}
 
-@app.get("api/searchByColor")
+@app.get("/api/searchByColor")
 def get_sketch(request: schemas.ColorInput):
     color_query = request.color
     ######### do some cottontail knn query #################
@@ -150,14 +153,26 @@ def get_sketch(request: schemas.ColorInput):
     ########################################################
     return {"result": "TAL"}
 
-@app.get("api/searchByObjectSketch")
-def get_sketch(request: schemas.ObjectSketchInput):
-    object_query = request.object
-    sketch_query = np.array(request.sketch)
+@app.get("/api/searchByObjectSketch")
+def get_sketch(object:str, x1: float, y1:float, x2:float, y2:float):
+    object_query = object
+    sketch_query = [x1,y1,x2,y2] # list of 4 elements
+    
     ######### do some cottontail knn query #################
     with CottontailDBClient('localhost', 1865) as client:
-        result_sketch = client.knn(sketch_query, "tal_db","object_sketch","sketch_vector", ["id", "distance"])
-        object_result = client.select_where(sketch_query, "tal_db","object_sketch")
+        
+        result = client.knn_where(sketch_query,"tal_db","object_sketch","sketch_vector","object", ["video_id", "keyframe_id", "distance", "object"],[object_query])
+        result = MessageToDict(list(result)[0])
+        response = {}
+        columns = result["columns"]
+        results = result["tuples"]
+        for i, tuple in enumerate(results):
+            response[f"data_{i}"] = dict()
+            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["doubleData"]
+            response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
+            response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
+            
     ########################################################
-    return {"result": "TAL"}
+    return {"result": response}
 

@@ -310,8 +310,8 @@ class CottontailDBClient:
      ############################# own code #################################################
 
     # knn uses query and uses knn as a
-    def knn(self,input_vector, schema, entity, searched_column_name, generated_column_names):
-        k = 1
+    def knn(self,input_vector, schema, entity, searched_column_name, generated_column_names,k = 10):
+        k = k
         if type(input_vector[0] == float):
             vector = float_vector_query(input_vector)
         else:
@@ -333,6 +333,47 @@ class CottontailDBClient:
         projection = Projection(columns  = projection_elements)
         # Query
         query = Query(**from_kwarg, projection = projection, knn = knn)
+        query_message = QueryMessage(txId=self._tid, query = query)
+        result = self._dql.Query(query_message)
+        return result
+
+        # knn uses query and uses knn as a
+    def knn_where(self,input_vector, schema, entity, searched_knn, searched_where, generated_column_names,search_words):
+        k = 10
+        if type(input_vector[0] == float):
+            vector = float_vector_query(input_vector)
+        else:
+            vector = int_vector_query(input_vector)
+        # From
+        schema_name = SchemaName(name = schema)
+        entity_name = EntityName(schema=schema_name, name=entity)
+        searched_column = ColumnName(entity = entity_name, name = searched_knn)
+        from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
+        # KNN
+        distance = Knn.Distance.L2
+        knn = Knn(attribute = searched_column, k= k, query = vector, distance = distance)
+        # Projection
+        projection_elements = []
+        for column_name in generated_column_names:
+            column = ColumnName(entity = entity_name, name = column_name)
+            projection_element = Projection.ProjectionElement(column = column)
+            projection_elements.append(projection_element)
+        projection = Projection(columns  = projection_elements)
+         # Where
+        column_where = ColumnName(entity = entity_name, name = searched_where)
+        literal = []
+        for word in search_words:
+            add_literal = Literal(stringData = word)
+            literal.append(add_literal)
+        literals = Literals(literal = literal)
+        boolean_operand = AtomicBooleanOperand(literals = literals)
+        atomic = AtomicBooleanPredicate(
+            left = column_where, 
+            op = ComparisonOperator.EQUAL, 
+            right = boolean_operand)
+        where = Where(atomic = atomic)
+        # Query
+        query = Query(**from_kwarg, projection = projection, knn = knn, where = where)
         query_message = QueryMessage(txId=self._tid, query = query)
         result = self._dql.Query(query_message)
         return result
@@ -381,7 +422,7 @@ class CottontailDBClient:
         boolean_operand = AtomicBooleanOperand(literals = literals)
         atomic = AtomicBooleanPredicate(
             left = column_searched, 
-            op = ComparisonOperator.LIKE, 
+            op = ComparisonOperator.EQUAL, 
             right = boolean_operand)
         where = Where(atomic = atomic)
         # Query

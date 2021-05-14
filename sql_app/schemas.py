@@ -37,4 +37,4 @@ class ColorInput(BaseModel):
     
 class ObjectSketchInput(BaseModel):
     object: str
-    sketch: list
+    sketch: List[float]
