@@ -8,6 +8,7 @@ with CottontailDBClient('localhost', 1865) as client:
    
     # Define entity color_sketch columns
     color_sketch_columns = [
+        column_def('color_id', Type.INTEGER, nullable=False),
         column_def('video_id', Type.STRING, nullable=False),
         column_def('keyframe_id', Type.INTEGER, nullable=False),
         column_def('sketch_vector', Type.FLOAT_VEC, nullable=True, length=4),
@@ -18,6 +19,7 @@ with CottontailDBClient('localhost', 1865) as client:
 
     # Define entity color_sketch columns
     object_sketch_columns = [
+        column_def('object_id', Type.INTEGER, nullable=False),
         column_def('video_id', Type.STRING, nullable=False),
         column_def('keyframe_id', Type.INTEGER, nullable=False),
         column_def('sketch_vector', Type.FLOAT_VEC, nullable=True, length=4),
