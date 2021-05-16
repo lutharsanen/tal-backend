@@ -62,7 +62,7 @@ def find_dominant_color(image):
     return closest_color(dominant_color)
 
 
-def store_color_sketch_from_masks(image, video_id, keyframe_id):  
+def store_color_sketch_from_masks(image, video_id, keyframe_id, counter):  
     detectron2_img = cv2.imread(image)
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
@@ -79,41 +79,47 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id):
     for box in boxes:
         im_crop = im.crop(tuple(box))
         dominant_color = list(find_dominant_color(im_crop))
-        
+        counter +=1
         ###### cottontail db logic ######
         with CottontailDBClient('localhost', 1865) as client:
             # Insert entry
             entry = {
+                'color_id': Literal(intData = counter),
                 'video_id': Literal(stringData=str(video_id)),
                 'keyframe_id': Literal(intData=int(keyframe_id)), 
                 'sketch_vector': float_vector(box.tolist()),
                 'color_vector': float_vector(dominant_color)}
             client.insert('tal_db', 'color_sketch', entry)
+    return counter
+
         # store rgb, border boxes, keyframe id and video id in database 
 
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[:5]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered_resized"))[:1]
     failed = {}
+    counter = 0
     for videonr in tqdm(video_filelist):
         failed[videonr] = []
-        for filename in get_all_filesname(f"{path}/home/keyframes_filtered/{videonr}"):
-            keyframe_id = get_keyframe_id(filename,videonr,path)
-            image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
-            try:
-                store_color_sketch_from_masks(image, videonr, keyframe_id)
-            except:
-                failed[videonr].append(filename)
+        for filename in get_all_filesname(f"{path}/keyframes_filtered_resized/{videonr}"):
+            if filename != "Thumbs.db":
+                keyframe_id = get_keyframe_id(filename,videonr,path)
+                image = f"{path}/keyframes_filtered_resized/{videonr}/{filename}"
+                #try:
+                new_counter = store_color_sketch_from_masks(image, videonr, keyframe_id,counter)
+                counter = new_counter
+                #except:
+                    #failed[videonr].append(filename)
 
        
     
-    with open("failed_color_sketch.json", "w") as fi:
-        fi.write(json.dumps(failed))
+    #with open("failed_color_sketch.json", "w") as fi:
+        #fi.write(json.dumps(failed))
     
 
 # change this path according to your computer
-path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
+path = "/media/lkunam/Elements/Video Retrieval System"
 
 
 run(path)

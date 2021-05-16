@@ -6,49 +6,79 @@ import os
 import multiprocessing
 from multiprocessing import Process
 import numpy as np
+from math import sqrt
 
 
-def find_dominant_color(filename):
+COLORS = (
+    (0,0,0), #black 
+    (255,255,255), #white
+    (255,0,0), #red
+    (0,255,0), #lime
+    (0,0,255), #blue
+    (255,255,0), #yellow
+    (0,255,255), #cyan
+    (255,0,255), #magenta
+    (192,192,192), #silver
+    (128,128,128), #gray
+    (128,0,0), #maroon
+    (128,128,0), #olive
+    (0,128,0), #green
+    (128,0,128), #purple
+    (0,128,128), #teal
+    (0,0,128), #navy
+    (255,165,0) #orange
+)
+
+def closest_color(rgb):
+    r, g, b = rgb
+    color_diffs = []
+    for color in COLORS:
+        cr, cg, cb = color
+        color_diff = sqrt(abs(r - cr)**2 + abs(g - cg)**2 + abs(b - cb)**2)
+        color_diffs.append((color_diff, color))
+    return min(color_diffs)[1]
+
+def find_dominant_color(image):
     #Resizing parameters
     width, height = 150,150
-    image = Image.open(filename)
     image = image.resize((width, height),resample = 0)
     #Get colors from image object
     pixels = image.getcolors(width * height)
     #Sort them by count number(first element of tuple)
     sorted_pixels = sorted(pixels, key=lambda t: t[0])
     #Get the most frequent color
-    dominant_color1 = sorted_pixels[-1][1]
-    dominant_color2 = sorted_pixels[-2][1]
-    dominant_color3 = sorted_pixels[-3][1]
-    print(dominant_color1)
-    print(dominant_color2)
-    print(dominant_color3)
-    return (dominant_color1,dominant_color2,dominant_color3)
+    dominant_color = sorted_pixels[-1][1]
+    return closest_color(dominant_color)
 
 
-def processing(files,videonr,path, core_nr):
+def processing(files,videonr,path):
+    xPieces = 3
+    yPieces = 4
     for filename in files:
         keyframe_id = get_keyframe_id(filename,videonr,path)
         image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
-        #store_color_sketch_from_masks(image, videonr, keyframe_id)
+        colors = []
         im = Image.open(image) 
-        im_quantized = im.quantize(25)
-        im_quantized.save(f"quantized_color_{core_nr}.png")
-        quantized_image = f"quantized_color_{core_nr}.png"
-        Image.open(quantized_image)
-        color = find_dominant_color(quantized_image)
-        print(color)
+        imgwidth, imgheight = im.size
+        height = imgheight // yPieces
+        width = imgwidth // xPieces
+        for i in range(0, yPieces):
+            for j in range(0, xPieces):
+                box = (j * width, i * height, (j + 1) * width, (i + 1) * height)
+                a = im.crop(box)
+                color = find_dominant_color(a)
+                colors.append(color)
 
+        color_list = list(sum(colors, ()))
         with CottontailDBClient('localhost', 1865) as client:
             # Insert entry
             entry = {
                 'video_id': Literal(stringData=str(videonr)),
                 'keyframe_id': Literal(intData=int(keyframe_id)), 
-                'dominant_color_vector': float_vector(list(color)),
+                'dominant_color_vector': float_vector(color_list),
             }
             client.insert('tal_db', 'color_image', entry)
-            os.remove(f"quantized_color_{core_nr}.png")
+
 
 
 

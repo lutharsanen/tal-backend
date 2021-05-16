@@ -2,7 +2,7 @@ from cottontaildb_client import CottontailDBClient
 from google.protobuf.json_format import MessageToDict
 import pandas as pd
 
-
+"""
 def cottontail_to_df(result,vector_name):
     test = MessageToDict(list(result)[0])
 
@@ -20,18 +20,18 @@ def cottontail_to_df(result,vector_name):
     df = pd.DataFrame.from_dict(response)
 
     return df.T
-
+"""
 
 
 with CottontailDBClient('localhost', 1865) as client:
 
-    #print(client.get_entity_details("tal_db", "color_sketch"))
-    #print(client.get_entity_details("tal_db", "color_image"))
+    print(client.get_entity_details("tal_db", "color_sketch"))
+    print(client.get_entity_details("tal_db", "color_image"))
     print(client.get_entity_details("tal_db", "object_sketch"))
     
-    result_sketch = client.knn([200.3,200.32,200.7,200.4],"tal_db","object_sketch","sketch_vector", ["video_id", "keyframe_id", "distance","object"],100)
-    df_sketch = cottontail_to_df(result_sketch, "sketch_vector")
-    print(df_sketch)
+    #result_sketch = client.knn([200.3,200.32,200.7,200.4],"tal_db","object_sketch","sketch_vector", ["video_id", "keyframe_id", "distance","object"],100)
+    #df_sketch = cottontail_to_df(result_sketch, "sketch_vector")
+    #print(df_sketch)
 
     #print(MessageToDict(list(result_sketch)[0]))
 

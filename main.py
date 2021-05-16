@@ -44,9 +44,10 @@ def main():
     return RedirectResponse("/docs")
 
 
-@app.get("/test")
-def test_api(limit: int):
-    return {"data": 2*limit}
+@app.post("/test")
+def test_api(request: schemas.Test):
+    lst = [request.test]
+    return {"data": lst}
 
 
 @app.post("/api/updateVideo")
@@ -136,19 +137,19 @@ def get_text(text: str, db: Session = Depends(get_db)):
 
 @app.post("/api/searchByColorSketch")
 def get_sketch(request: schemas.ColorSketchInput):
-    color_query = [request.r,request.g,request.b]
+    color_query = request.color
     # (x1,y1) is lower left and (x2,y2) is upper right
-    sketch_query = [request.x1,request.y1,request.x2,request.y2]
+    sketch_query = request.box
     ######### do some cottontail knn query #################
     with CottontailDBClient('localhost', 1865) as client:
-        result_sketch = client.knn(sketch_query,"tal_db","color_sketch","sketch_vector", ["video_id", "keyframe_id", "distance"],500)
+        result_sketch = client.knn(sketch_query,"tal_db","color_sketch","sketch_vector", ["color_id","video_id", "keyframe_id", "distance"],500)
         df_sketch = cottontail_to_df(result_sketch, "sketch_vector")
 
-        result_color = client.knn(color_query,"tal_db","color_sketch","color_vector", ["video_id", "keyframe_id", "distance"],500)
+        result_color = client.knn(color_query,"tal_db","color_sketch","color_vector", ["color_id","video_id", "keyframe_id", "distance"],500)
 
         df_color = cottontail_to_df(result_color, "color_vector")
 
-        merged_df = pd.merge(df_sketch,df_color,on=['video_id',"keyframe_id"])
+        merged_df = pd.merge(df_sketch,df_color,on=['object_id','video_id',"keyframe_id"])
 
         merged_df["distance"] = 0.5 * merged_df["color_vector"] + 0.5 * merged_df["sketch_vector"]
         merged_df = merged_df.drop(['color_vector', 'sketch_vector'], axis=1).sort_values(by=['distance'])
@@ -160,18 +161,42 @@ def get_sketch(request: schemas.ColorSketchInput):
 
 @app.get("/api/searchByColor")
 def get_sketch(request: schemas.ColorInput):
-    color_query = request.color
+    colors = [
+        request.color_one,
+        request.color_two,
+        request.color_three,
+        request.color_four,
+        request.color_five,
+        request.color_six,
+        request.color_seven,
+        request.color_eight,
+        request.color_nine,
+        request.color_ten,
+        request.color_eleven,
+        request.color_twelve,
+        ]
+
+    color_query = list(sum(colors, []))
     ######### do some cottontail knn query #################
     with CottontailDBClient('localhost', 1865) as client:
-        result_color = client.knn(color_query, "tal_db","color_image","color_vector", ["id", "distance"])
+        result = client.knn(color_query, "tal_db","color_image","color_vector", ["video_id", "keyframe_id", "distance"])
+        result = MessageToDict(list(result)[0])
+        response = {}
+        columns = result["columns"]
+        results = result["tuples"]
+        for i, tuple in enumerate(results):
+            response[f"data_{i}"] = dict()
+            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["doubleData"]
+            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+            response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"] 
     ########################################################
-    return {"result": "TAL"}
+    return {"result": response}
 
-@app.get("/api/searchByObjectSketch")
-def get_sketch(object:str, x1: float, y1:float, x2:float, y2:float):
-    object_query = object
+@app.post("/api/searchByObjectSketch")
+def get_sketch(request: schemas.ObjectSketchInput):
+    object_query = request.object
     # (x1,y1) is lower left and (x2,y2) is upper right
-    sketch_query = [x1,y1,x2,y2] # list of 4 elements
+    sketch_query = request.sketch # list of 4 elements
     
     ######### do some cottontail knn query #################
     with CottontailDBClient('localhost', 1865) as client:
