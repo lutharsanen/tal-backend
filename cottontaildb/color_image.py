@@ -64,8 +64,8 @@ def run(path):
                 keyframe_id = get_keyframe_id(filename,videonr,path)
                 #image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
                 image = f"{path}/keyframes_filtered_resized/{videonr}/{filename}"
-                xPieces = 3
-                yPieces = 4
+                xPieces = 4
+                yPieces = 3
                 colors = []
                 im = Image.open(image) 
                 imgwidth, imgheight = im.size
