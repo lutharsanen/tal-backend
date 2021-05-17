@@ -137,9 +137,9 @@ def get_text(text: str, db: Session = Depends(get_db)):
 
 @app.post("/api/searchByColorSketch")
 def get_sketch(request: schemas.ColorSketchInput):
-    color_query = request.color
+    color_query = [request.color[0].red,request.color[0].green,request.color[0].blue]
     # (x1,y1) is lower left and (x2,y2) is upper right
-    sketch_query = request.box
+    sketch_query = [request.box[0].x1,request.box[0].y1,request.box[0].x2,request.box[0].y2]
     ######### do some cottontail knn query #################
     with CottontailDBClient('localhost', 1865) as client:
         result_sketch = client.knn(sketch_query,"tal_db","color_sketch","sketch_vector", ["color_id","video_id", "keyframe_id", "distance"],500)
@@ -161,28 +161,49 @@ def get_sketch(request: schemas.ColorSketchInput):
 
 @app.post("/api/searchByColor")
 def get_sketch(request: schemas.ColorInput):
-    colors = [
-        request.color_one,
-        request.color_two,
-        request.color_three,
-        request.color_four,
-        request.color_five,
-        request.color_six,
-        request.color_seven,
-        request.color_eight,
-        request.color_nine,
-        request.color_ten,
-        request.color_eleven,
-        request.color_twelve,
+    color_query = [
+        request.color_one[0].red,
+        request.color_one[0].green,
+        request.color_one[0].blue,
+        request.color_two[0].red,
+        request.color_two[0].green,
+        request.color_two[0].blue,
+        request.color_three[0].red,
+        request.color_three[0].green,
+        request.color_three[0].blue,
+        request.color_four[0].red,
+        request.color_four[0].green,
+        request.color_four[0].blue,
+        request.color_five[0].red,
+        request.color_five[0].green,
+        request.color_five[0].blue,
+        request.color_six[0].red,
+        request.color_six[0].green,
+        request.color_six[0].blue,
+        request.color_seven[0].red,
+        request.color_seven[0].green,
+        request.color_seven[0].blue,
+        request.color_eight[0].red,
+        request.color_eight[0].green,
+        request.color_eight[0].blue,
+        request.color_nine[0].red,
+        request.color_nine[0].green,
+        request.color_nine[0].blue,
+        request.color_ten[0].red,
+        request.color_ten[0].green,
+        request.color_ten[0].blue,
+        request.color_eleven[0].red,
+        request.color_eleven[0].green,
+        request.color_eleven[0].blue,
+        request.color_twelve[0].red,
+        request.color_twelve[0].green,
+        request.color_twelve[0].blue,
         ]
 
-    print((request.color_one[0].red))
-    print(type(request.color_one))
-    color_query = list(sum(colors, []))
-    #print(color_query)
+
     ######### do some cottontail knn query #################
-    """with CottontailDBClient('localhost', 1865) as client:
-        result = client.knn(color_query, "tal_db","color_image","color_vector", ["video_id", "keyframe_id", "distance"])
+    with CottontailDBClient('localhost', 1865) as client:
+        result = client.knn(color_query, "tal_db","color_image","dominant_color_vector", ["video_id", "keyframe_id", "distance"])
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
@@ -193,13 +214,13 @@ def get_sketch(request: schemas.ColorInput):
             response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
             response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"] 
     ########################################################
-    return {"result": response}"""
+    return {"result": response}
 
 @app.post("/api/searchByObjectSketch")
 def get_sketch(request: schemas.ObjectSketchInput):
     object_query = request.object
     # (x1,y1) is lower left and (x2,y2) is upper right
-    sketch_query = request.sketch # list of 4 elements
+    sketch_query = [request.sketch[0].x1,request.sketch[0].y1,request.sketch[0].x2,request.sketch[0].y2] # list of 4 elements
     
     ######### do some cottontail knn query #################
     with CottontailDBClient('localhost', 1865) as client:

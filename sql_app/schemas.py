@@ -59,7 +59,7 @@ class ColorInput(BaseModel):
     
 class ObjectSketchInput(BaseModel):
     object: str
-    sketch: List[float]
+    sketch: List[SketchBox]
 
 class Test(BaseModel):
     test: List[RGB]
