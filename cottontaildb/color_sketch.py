@@ -41,7 +41,7 @@ COLORS = (
 )
 
 def closest_color(rgb):
-    r, g, b = rgb
+    r, g, b = rgb[0],rgb[1],rgb[2]
     color_diffs = []
     for color in COLORS:
         cr, cg, cb = color
@@ -59,6 +59,7 @@ def find_dominant_color(image):
     sorted_pixels = sorted(pixels, key=lambda t: t[0])
     #Get the most frequent color
     dominant_color = sorted_pixels[-1][1]
+    print(dominant_color)
     return closest_color(dominant_color)
 
 
@@ -97,7 +98,7 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id, counter):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered_resized"))[:1]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered_resized"))[:100]
     failed = {}
     counter = 0
     for videonr in tqdm(video_filelist):

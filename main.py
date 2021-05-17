@@ -159,7 +159,7 @@ def get_sketch(request: schemas.ColorSketchInput):
     ########################################################
     return {"result": response}
 
-@app.get("/api/searchByColor")
+@app.post("/api/searchByColor")
 def get_sketch(request: schemas.ColorInput):
     colors = [
         request.color_one,
@@ -176,9 +176,12 @@ def get_sketch(request: schemas.ColorInput):
         request.color_twelve,
         ]
 
+    print((request.color_one[0].red))
+    print(type(request.color_one))
     color_query = list(sum(colors, []))
+    #print(color_query)
     ######### do some cottontail knn query #################
-    with CottontailDBClient('localhost', 1865) as client:
+    """with CottontailDBClient('localhost', 1865) as client:
         result = client.knn(color_query, "tal_db","color_image","color_vector", ["video_id", "keyframe_id", "distance"])
         result = MessageToDict(list(result)[0])
         response = {}
@@ -190,7 +193,7 @@ def get_sketch(request: schemas.ColorInput):
             response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
             response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"] 
     ########################################################
-    return {"result": response}
+    return {"result": response}"""
 
 @app.post("/api/searchByObjectSketch")
 def get_sketch(request: schemas.ObjectSketchInput):
