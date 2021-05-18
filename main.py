@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse
 from sql_app import crud, models, schemas
 from sql_app.database import SessionLocal, engine
 
-from helper import stemming_algo, cottontail_to_df, cottontail_where_to_df
+from helper import stemming_algo, cottontail_to_df, cottontail_where_to_df, cottontail_object_number_search
 import numpy as np
 import pandas as pd
 
@@ -49,88 +49,84 @@ def test_api(request: schemas.Test):
     lst = [request.test]
     return {"data": lst}
 
-@app.post("/api/updateVideo")
-def text_analyzer(request: schemas.VideoBase, db: Session = Depends(get_db)):
-    new_keyframe_video = models.Video(
-        video_id=request.video_id, description=request.description, title=request.title, vimeo_id=request.vimeo_id)
-    db.add(new_keyframe_video)
-    db.commit()
-    db.refresh(new_keyframe_video)
-    return {"database_update": "success"}
-
-
-@app.post("/api/updateTags")
-def text_analyzer(request: schemas.Tags, db: Session = Depends(get_db)):
-    new_tag = models.Tags(
-        video_id=request.video_id, tag=request.tag)
-    db.add(new_tag)
-    db.commit()
-    db.refresh(new_tag)
-    return {"database_update": "success"}
-
-
-@app.post("/api/updateTextanalysis")
-def text_analyzer(request: schemas.Text, db: Session = Depends(get_db)):
-    new_keyframe_text = models.Text(
-        keyframe_id=request.keyframe_id,
-        text=request.text,
-        video_id=request.video_id,
-        start_frame=request.start_frame,
-        start_time=request.start_time)
-    db.add(new_keyframe_text)
-    db.commit()
-    db.refresh(new_keyframe_text)
-    return {"database_update": "success"}
-
-
-@app.get("/api/all-text")
-def get_text(db: Session = Depends(get_db)):
-    video_searched = db.query(models.Text).all()
-    return video_searched
-
-
-@app.get("/api/all-tags")
-def get_text(db: Session = Depends(get_db)):
-    video_searched = db.query(models.Tags).all()
-    return video_searched
-
-
-@app.get("/api/all-video")
-def get_text(db: Session = Depends(get_db)):
-    video_searched = db.query(models.Video).all()
-    return video_searched
-    
 
 @app.get("/api/searchByVideoText")
 def get_text(text: str, db: Session = Depends(get_db)):
     text = stemming_algo(text)
-    video_searched = db.query(models.Text).filter(
-        models.Text.text.ilike(f'%{text}%')).all()
-    return {"results": video_searched}
+
+    with CottontailDBClient('localhost', 1865) as client:
+        result = client.select_where("tal_db","text_search", ["video_id","tesseract_text"], "tesseract_text", [f"%{text}%"])
+        result = MessageToDict(list(result)[0])
+        response = {}
+        columns = result["columns"]
+        if 'tuples' in result.keys():
+            results = result["tuples"]
+        else:
+            return {"results": []}
+        for i, tuple in enumerate(results):
+            response[f"data_{i}"] = dict()
+            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+    return {"results": response}
 
 
 @app.get("/api/searchByDescription")
 def get_text(text: str, db: Session = Depends(get_db)):
     text = stemming_algo(text)
-    video_searched = db.query(models.Video).filter(
-        models.Video.description.ilike(f'%{text}%')).all()
-    return {"results": video_searched}
+
+    with CottontailDBClient('localhost', 1865) as client:
+        result = client.select_where("tal_db","text_search", ["video_id","description"], "description", [f"%{text}%"])
+        result = MessageToDict(list(result)[0])
+        response = {}
+        columns = result["columns"]
+        if 'tuples' in result.keys():
+            results = result["tuples"]
+        else:
+            return {"results": []}
+        for i, tuple in enumerate(results):
+            response[f"data_{i}"] = dict()
+            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+    return {"results": response}
 
 
 @app.get("/api/searchByTitle")
 def get_text(text: str, db: Session = Depends(get_db)):
     text = stemming_algo(text)
-    video_searched = db.query(models.Video).filter(
-        models.Video.title.ilike(f'%{text}%')).all()
-    return {"results": video_searched}
 
+    with CottontailDBClient('localhost', 1865) as client:
+        result = client.select_where("tal_db","text_search", ["video_id","title"], "title", [f"%{text}%"])
+        result = MessageToDict(list(result)[0])
+        response = {}
+        columns = result["columns"]
+        if 'tuples' in result.keys():
+            results = result["tuples"]
+        else:
+            return {"results": []}
+        for i, tuple in enumerate(results):
+            response[f"data_{i}"] = dict()
+            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+    return {"results": response}
 
 @app.get("/api/searchByTag")
 def get_text(text: str, db: Session = Depends(get_db)):
     text = stemming_algo(text)
-    video_searched = db.query(models.Tags).filter(
-        models.Tags.tag.ilike(f'%{text}%')).all()
-    return {"results": video_searched}
+
+    with CottontailDBClient('localhost', 1865) as client:
+        result = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", [f"%{text}%"])
+        result = MessageToDict(list(result)[0])
+        response = {}
+        columns = result["columns"]
+        if 'tuples' in result.keys():
+            results = result["tuples"]
+        else:
+            return {"results": []}
+        for i, tuple in enumerate(results):
+            response[f"data_{i}"] = dict()
+            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+    return {"results": response}
 
 ################ Cottonttail API-Calls ############################
 
@@ -140,24 +136,17 @@ def get_sketch(request: schemas.ColorSketchInput):
     # (x1,y1) is lower left and (x2,y2) is upper right
     sketch_query = [request.box.x1,request.box.y1,request.box.x2,request.box.y2]
     object_query = request.object
-    ######### do some cottontail knn query #################
+
     with CottontailDBClient('localhost', 1865) as client:
         result_sketch = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object_query])
-                        #client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["video_id", "keyframe_id", "distance", "object"],[object_query])
         df_sketch = cottontail_where_to_df(result_sketch, "sketch_vector")
-
         result_color = client.knn(color_query,"tal_db","sketch","color_vector", ["box_id","video_id", "keyframe_id","start_time", "distance"],500)
-
         df_color = cottontail_to_df(result_color, "color_vector")
-
         merged_df = pd.merge(df_sketch,df_color,on=['box_id','video_id',"keyframe_id","start_time"])
-
         merged_df["distance"] = 0.5 * merged_df["color_vector"] + 0.5 * merged_df["sketch_vector"]
         merged_df = merged_df.drop(['color_vector', 'sketch_vector'], axis=1).sort_values(by=['distance'])
-    
         response = merged_df.drop_duplicates(subset=['box_id']).head(10).to_dict(orient="records")
 
-    ########################################################
     return {"result": response}
 
 @app.post("/api/searchByColor")
@@ -201,8 +190,6 @@ def get_sketch(request: schemas.ColorInput):
         request._11.blue,
         ]
 
-
-    ######### do some cottontail knn query #################
     with CottontailDBClient('localhost', 1865) as client:
         result = client.knn(color_query, "tal_db","color_image","dominant_color_vector", ["video_id", "keyframe_id", "start_time","distance"])
         result = MessageToDict(list(result)[0])
@@ -215,7 +202,6 @@ def get_sketch(request: schemas.ColorInput):
             response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
             response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
             response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
-    ########################################################
     return {"result": response}
 
 @app.post("/api/searchByObjectSketch")
@@ -224,7 +210,6 @@ def get_sketch(request: schemas.ObjectSketchInput):
     # (x1,y1) is lower left and (x2,y2) is upper right
     sketch_query = [request.sketch.x1,request.sketch.y1,request.sketch.x2,request.sketch.y2] # list of 4 elements
     
-    ######### do some cottontail knn query #################
     with CottontailDBClient('localhost', 1865) as client:
         
         result = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["video_id", "keyframe_id", "distance", "object"],[object_query])
@@ -239,6 +224,69 @@ def get_sketch(request: schemas.ObjectSketchInput):
             response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
             response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
             
-    ########################################################
     return {"result": response}
+
+@app.post("/api/searchByNumberObject")
+def get_sketch(request: schemas.ObjectNumber):
+    object_query = request.object
+    # (x1,y1) is lower left and (x2,y2) is upper right
+    number = request.number # list of 4 elements
+    
+    with CottontailDBClient('localhost', 1865) as client:
+        
+        result = client.select_where("tal_db","sketch",["box_id","video_id", "keyframe_id", "start_time","object"],"object", [request.object])
+        response = cottontail_object_number_search(result, number)
+
+
+    return {"result": response.to_dict(orient="records")}
+
+##################### Sipmle Get-Request ###################################
+
+@app.get("/api/getAllTags")
+def all_tags():
+    with CottontailDBClient('localhost', 1865) as client:
+        result = client.select("tal_db","video_tags", ["tags"])
+        result = MessageToDict(list(result)[0])
+        response = []
+        results = result["tuples"]
+        for i, tuple in enumerate(results):
+            response.append(tuple["data"][0]["stringData"])
+
+    return {"result": response}
+
+@app.get("/api/getAllColors")
+def all_tags():
+    COLORS = (
+    (0,0,0), #black 
+    (255,255,255), #white
+    (255,0,0), #red
+    (0,255,0), #lime
+    (0,0,255), #blue
+    (255,255,0), #yellow
+    (0,255,255), #cyan
+    (255,0,255), #magenta
+    (192,192,192), #silver
+    (128,128,128), #gray
+    (128,0,0), #maroon
+    (128,128,0), #olive
+    (0,128,0), #green
+    (128,0,128), #purple
+    (0,128,128), #teal
+    (0,0,128), #navy
+    (255,165,0) #orange
+)
+    return {"result": COLORS}
+
+@app.get("/api/getAllObjects")
+def all_tags():
+    with CottontailDBClient('localhost', 1865) as client:
+        result = client.select("tal_db","sketch", ["object"])
+        result = MessageToDict(list(result)[0])
+        response = []
+        results = result["tuples"]
+        for i, tuple in enumerate(results):
+            response.append(tuple["data"][0]["stringData"])
+
+    return {"result": response}
+
 

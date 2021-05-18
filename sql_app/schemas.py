@@ -63,3 +63,7 @@ class ObjectSketchInput(BaseModel):
 
 class Test(BaseModel):
     test: RGB
+
+class ObjectNumber(BaseModel):
+    object: str
+    number: int

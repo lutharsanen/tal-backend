@@ -1,18 +1,12 @@
-try:
-    from PIL import Image
-except ImportError:
-    import Image
+from PIL import Image
 import pytesseract as tess
-import glob
 import os
-import requests
 import json
 import re
 import pandas as pd
 
 from cottontail_helper import get_all_filesname, get_keyframe_id
-from cottontaildb_client import CottontailDBClient, Literal, float_vector
-import json
+from cottontaildb_client import CottontailDBClient, Literal
 from tqdm import tqdm
 
 # If you don't have tesseract executable in your PATH, include the following:
@@ -39,7 +33,13 @@ def run(path):
         data = json.load(f)
 
         with CottontailDBClient('localhost', 1865) as client:    
-        
+            entry = {
+                'video_id': Literal(stringData = videonr),
+                'title': Literal(stringData = data["title"]),
+                'description': Literal(stringData = cleanhtml(data["description"]))
+            }
+            client.insert('tal_db', 'video_search', entry)
+
             for tag in data["tags"]:
                 entry = {
                     'video_id': Literal(stringData = videonr),
@@ -59,9 +59,7 @@ def run(path):
                     text.replace("/n", " ")
                     entry = {
                         'video_id': Literal(stringData = videonr),
-                        'keyframe_id': Literal(intData=int(keyframe_id)), 
-                        'title': Literal(stringData = data["title"]),
-                        'description': Literal(stringData = cleanhtml(data["description"])),
+                        'keyframe_id': Literal(intData=int(keyframe_id)),
                         'tesseract_text': Literal(stringData = text),
                         'start_time':Literal(intData = int(start_time.iloc[keyframe_nr]["startframe"]))
                     }

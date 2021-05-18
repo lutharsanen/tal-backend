@@ -32,7 +32,33 @@ with CottontailDBClient('localhost', 1865) as client:
 
     ########################################################
 
-    result = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", ["no"])
+    #result = client.select("tal_db","video_tags", ["tags"])
     #result = client.select("tal_db","video_tags", ["video_id", "tags"])
-    test = MessageToDict(list(result)[0])
-    print(test)
+    #test = MessageToDict(list(result)[0])
+    #print(test)
+
+    result = client.select_where("tal_db","sketch",["box_id","video_id", "keyframe_id", "start_time","object"],"object", ["person"])
+    result = MessageToDict(list(result)[0])
+    response = {}
+    columns = result["columns"]
+    results = result["tuples"]
+
+    for i, tuple in enumerate(results):
+        response[f"{i}"] = dict()
+        response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+        response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["intData"] 
+        response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
+        response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
+        response[f"{i}"][columns[4]["name"]] = tuple["data"][4]["intData"] 
+
+
+    df = pd.DataFrame.from_dict(response)
+
+    df_t = df.T
+
+    df_t=df_t.drop_duplicates(['box_id'])
+    df_new = df_t.groupby(['keyframe_id', 'video_id']).size().reset_index(name="count")
+
+    result = df_new[df_new["count"] > 2].sort_values(by=['count'],ascending=False)
+    #df_new = df.T.groupby(['keyframe_id', 'video_id']).count()
+    print(result)

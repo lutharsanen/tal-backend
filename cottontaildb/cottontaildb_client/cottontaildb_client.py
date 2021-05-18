@@ -387,9 +387,10 @@ class CottontailDBClient:
         projection_elements = []
         for column_name in column_names:
             column = ColumnName(entity = entity_name, name = column_name)
+            projection_operation = Projection.ProjectionOperation.SELECT_DISTINCT
             projection_element = Projection.ProjectionElement(column = column)
             projection_elements.append(projection_element)
-        projection = Projection(columns  = projection_elements)
+        projection = Projection(op = projection_operation, columns  = projection_elements)
         # From
         from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
         # Query
