@@ -369,7 +369,7 @@ class CottontailDBClient:
         boolean_operand = AtomicBooleanOperand(literals = literals)
         atomic = AtomicBooleanPredicate(
             left = column_where, 
-            op = ComparisonOperator.EQUAL, 
+            op = ComparisonOperator.LEQUAL, 
             right = boolean_operand)
         where = Where(atomic = atomic)
         # Query
@@ -413,7 +413,7 @@ class CottontailDBClient:
             projection_elements.append(projection_element)
         projection = Projection(columns  = projection_elements)
         # Where
-        column_searched = ColumnName(entity = entity_name, name = searched_column)
+        column_where = ColumnName(entity = entity_name, name = searched_column)
         literal = []
         for word in search_words:
             add_literal = Literal(stringData = word)
@@ -421,13 +421,12 @@ class CottontailDBClient:
         literals = Literals(literal = literal)
         boolean_operand = AtomicBooleanOperand(literals = literals)
         atomic = AtomicBooleanPredicate(
-            left = column_searched, 
+            left = column_where, 
             op = ComparisonOperator.EQUAL, 
             right = boolean_operand)
         where = Where(atomic = atomic)
         # Query
         query = Query(**from_kwarg, projection = projection, where = where)
-        # Query Message
         query_message = QueryMessage(txId=self._tid, query = query)
         result = self._dql.Query(query_message)
         return result 

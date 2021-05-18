@@ -8,6 +8,7 @@ from multiprocessing import Process
 import numpy as np
 from math import sqrt
 from tqdm import tqdm
+import pandas as pd
 
 
 COLORS = (
@@ -55,15 +56,18 @@ def find_dominant_color(image):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered_resized"))[1:100]
+    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[:10]
     failed = {}
     for videonr in tqdm(video_filelist):
         failed[videonr] = []
-        for filename in tqdm(get_all_filesname(f"{path}/keyframes_filtered_resized/{videonr}")):
+        f = open(f"{path}/home/msb/{videonr}.tsv")
+        start_times = pd.read_csv(f, delimiter="\t")
+        for filename in tqdm(get_all_filesname(f"{path}/home/keyframes_filtered/{videonr}")):
             if filename != "Thumbs.db":
                 keyframe_id = get_keyframe_id(filename,videonr,path)
+                keyframe_nr = int(keyframe_id)-1
                 #image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
-                image = f"{path}/keyframes_filtered_resized/{videonr}/{filename}"
+                image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
                 xPieces = 4
                 yPieces = 3
                 colors = []
@@ -85,12 +89,13 @@ def run(path):
                         'video_id': Literal(stringData=str(videonr)),
                         'keyframe_id': Literal(intData=int(keyframe_id)), 
                         'dominant_color_vector': float_vector(color_list),
+                        'start_time':Literal(intData = int(start_times.iloc[keyframe_nr]["startframe"]))
                     }
                     client.insert('tal_db', 'color_image', entry)
 
 # change this path according to your computer
-#path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
-path = "/media/lkunam/Elements/Video Retrieval System"
+path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
+#path = "/media/lkunam/Elements/Video Retrieval System"
 
 run(path)
 

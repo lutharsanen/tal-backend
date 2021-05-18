@@ -1,6 +1,7 @@
 import torch, torchvision
 import detectron2
 from detectron2.utils.logger import setup_logger
+import pandas as pd
 
 # import some common libraries
 import numpy as np
@@ -59,11 +60,10 @@ def find_dominant_color(image):
     sorted_pixels = sorted(pixels, key=lambda t: t[0])
     #Get the most frequent color
     dominant_color = sorted_pixels[-1][1]
-    print(dominant_color)
     return closest_color(dominant_color)
 
 
-def store_color_sketch_from_masks(image, video_id, keyframe_id, counter):  
+def store_color_sketch_from_masks(image, video_id, keyframe_id, counter,start_time):  
     detectron2_img = cv2.imread(image)
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
@@ -72,25 +72,30 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id, counter):
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
     predictor = DefaultPredictor(cfg)
     outputs = predictor(detectron2_img)
-
-    #masks = outputs["instances"].pred_masks.cpu().numpy()
     boxes = outputs["instances"].pred_boxes.tensor.cpu().numpy()
+    classes = outputs["instances"].pred_classes.cpu().numpy()
     
     im = Image.open(image)
-    for box in boxes:
+    for data, box in zip(classes, boxes):
+        num = data.item()
+        object = MetadataCatalog.get(cfg.DATASETS.TRAIN[0]).thing_classes[num]
         im_crop = im.crop(tuple(box))
         dominant_color = list(find_dominant_color(im_crop))
         counter +=1
+        keyframe_nr = int(keyframe_id)-1
         ###### cottontail db logic ######
         with CottontailDBClient('localhost', 1865) as client:
             # Insert entry
             entry = {
-                'color_id': Literal(intData = counter),
+                'box_id': Literal(intData = counter),
                 'video_id': Literal(stringData=str(video_id)),
                 'keyframe_id': Literal(intData=int(keyframe_id)), 
                 'sketch_vector': float_vector(box.tolist()),
-                'color_vector': float_vector(dominant_color)}
-            client.insert('tal_db', 'color_sketch', entry)
+                'color_vector': float_vector(dominant_color),
+                'object': Literal(stringData = object),
+                'start_time':Literal(intData = int(start_time.iloc[keyframe_nr]["startframe"]))
+            }
+            client.insert('tal_db', 'sketch', entry)
     return counter
 
         # store rgb, border boxes, keyframe id and video id in database 
@@ -98,20 +103,23 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id, counter):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered_resized"))[:100]
+    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered_resized"))[:10]
     failed = {}
     counter = 0
     for videonr in tqdm(video_filelist):
         failed[videonr] = []
-        for filename in get_all_filesname(f"{path}/keyframes_filtered_resized/{videonr}"):
-            if filename != "Thumbs.db":
-                keyframe_id = get_keyframe_id(filename,videonr,path)
-                image = f"{path}/keyframes_filtered_resized/{videonr}/{filename}"
-                #try:
-                new_counter = store_color_sketch_from_masks(image, videonr, keyframe_id,counter)
-                counter = new_counter
-                #except:
-                    #failed[videonr].append(filename)
+        if videonr != ".idea":
+            f = open(f"{path}/home/msb/{videonr}.tsv")
+            read_tsv = pd.read_csv(f, delimiter="\t")
+            for filename in get_all_filesname(f"{path}/home/keyframes_filtered_resized/{videonr}"):
+                if filename != "Thumbs.db":
+                    keyframe_id = get_keyframe_id(filename,videonr,path)
+                    image = f"{path}/home/keyframes_filtered_resized/{videonr}/{filename}"
+                    #try:
+                    new_counter = store_color_sketch_from_masks(image, videonr, keyframe_id,counter,read_tsv)
+                    counter = new_counter
+                    #except:
+                        #failed[videonr].append(filename)
 
        
     
@@ -120,7 +128,7 @@ def run(path):
     
 
 # change this path according to your computer
-path = "/media/lkunam/Elements/Video Retrieval System"
+path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
 
 
 run(path)

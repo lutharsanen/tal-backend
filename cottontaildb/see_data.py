@@ -2,32 +2,13 @@ from cottontaildb_client import CottontailDBClient
 from google.protobuf.json_format import MessageToDict
 import pandas as pd
 
-"""
-def cottontail_to_df(result,vector_name):
-    test = MessageToDict(list(result)[0])
-
-    response = {}
-
-    columns = (test["columns"])
-    results = test["tuples"]
-    for i, tuple in enumerate(results):
-        response[f"data_{i}"] = dict()
-        response[f"data_{i}"][vector_name] = tuple["data"][0]["doubleData"]
-        response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
-        response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
-        response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["stringData"]
-
-    df = pd.DataFrame.from_dict(response)
-
-    return df.T
-"""
-
 
 with CottontailDBClient('localhost', 1865) as client:
 
-    print(client.get_entity_details("tal_db", "color_sketch"))
-    print(client.get_entity_details("tal_db", "color_image"))
-    print(client.get_entity_details("tal_db", "object_sketch"))
+    #print(client.get_entity_details("tal_db", "sketch"))
+    #print(client.get_entity_details("tal_db", "color_image"))
+    #print(client.get_entity_details("tal_db", "text_search"))
+    #print(client.get_entity_details("tal_db", "video_tags"))
     
     #result_sketch = client.knn([200.3,200.32,200.7,200.4],"tal_db","object_sketch","sketch_vector", ["video_id", "keyframe_id", "distance","object"],100)
     #df_sketch = cottontail_to_df(result_sketch, "sketch_vector")
@@ -50,3 +31,8 @@ with CottontailDBClient('localhost', 1865) as client:
     #print(merged_df.head(10).to_dict(orient="records"))
 
     ########################################################
+
+    result = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", ["nomod"])
+    #result = client.select("tal_db","video_tags", ["video_id", "tags"])
+    test = MessageToDict(list(result)[0])
+    print(test)

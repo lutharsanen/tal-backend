@@ -1,4 +1,3 @@
-from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -40,26 +39,27 @@ class TextInput(BaseModel):
     text: str
 
 class ColorSketchInput(BaseModel):
-    color: List[RGB]
-    box: List[SketchBox]
+    color: RGB
+    box: SketchBox
+    object: str
 
 class ColorInput(BaseModel):
-    color_one: List[RGB]
-    color_two: List[RGB]
-    color_three: List[RGB]
-    color_four: List[RGB]
-    color_five: List[RGB]
-    color_six: List[RGB]
-    color_seven: List[RGB]
-    color_eight: List[RGB]
-    color_nine: List[RGB]
-    color_ten: List[RGB]
-    color_eleven: List[RGB]
-    color_twelve: List[RGB]
+    _0: RGB
+    _1: RGB
+    _2: RGB
+    _3: RGB
+    _4: RGB
+    _5: RGB
+    _6: RGB
+    _7: RGB
+    _8: RGB
+    _9: RGB
+    _10: RGB
+    _11: RGB
     
 class ObjectSketchInput(BaseModel):
     object: str
-    sketch: List[SketchBox]
+    sketch: SketchBox
 
 class Test(BaseModel):
-    test: List[RGB]
+    test: RGB

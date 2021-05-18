@@ -12,16 +12,38 @@ def stemming_algo(word):
 
 def cottontail_to_df(result,vector_name):
     test = MessageToDict(list(result)[0])
+    response = {}
 
+    columns = test["columns"]
+    results = test["tuples"]
+    #print(result)
+    for i, tuple in enumerate(results):
+        response[f"data_{i}"] = dict()
+        response[f"data_{i}"][vector_name] = tuple["data"][0]["doubleData"]
+        response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["intData"]
+        response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
+        response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["intData"]
+        response[f"data_{i}"][columns[4]["name"]] = tuple["data"][4]["intData"]
+
+    df = pd.DataFrame.from_dict(response)
+
+    return df.T
+
+
+def cottontail_where_to_df(result,vector_name):
+    test = MessageToDict(list(result)[0])
     response = {}
 
     columns = test["columns"]
     results = test["tuples"]
     for i, tuple in enumerate(results):
         response[f"data_{i}"] = dict()
-        response[f"data_{i}"][vector_name] = tuple["data"][0]["doubleData"]
-        response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+        response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+        response[f"data_{i}"][vector_name] = tuple["data"][1]["doubleData"]
         response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
+        response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["stringData"]
+        response[f"data_{i}"][columns[4]["name"]] = tuple["data"][4]["intData"]
+        response[f"data_{i}"][columns[5]["name"]] = tuple["data"][5]["intData"]
 
     df = pd.DataFrame.from_dict(response)
 
