@@ -369,7 +369,7 @@ class CottontailDBClient:
         boolean_operand = AtomicBooleanOperand(literals = literals)
         atomic = AtomicBooleanPredicate(
             left = column_where, 
-            op = ComparisonOperator.LEQUAL, 
+            op = ComparisonOperator.EQUAL, 
             right = boolean_operand)
         where = Where(atomic = atomic)
         # Query
@@ -422,7 +422,7 @@ class CottontailDBClient:
         boolean_operand = AtomicBooleanOperand(literals = literals)
         atomic = AtomicBooleanPredicate(
             left = column_where, 
-            op = ComparisonOperator.EQUAL, 
+            op = ComparisonOperator.LIKE, 
             right = boolean_operand)
         where = Where(atomic = atomic)
         # Query

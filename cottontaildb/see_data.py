@@ -32,7 +32,7 @@ with CottontailDBClient('localhost', 1865) as client:
 
     ########################################################
 
-    result = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", ["nomod"])
+    result = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", ["no"])
     #result = client.select("tal_db","video_tags", ["video_id", "tags"])
     test = MessageToDict(list(result)[0])
     print(test)
