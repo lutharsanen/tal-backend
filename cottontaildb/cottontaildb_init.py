@@ -37,7 +37,8 @@ with CottontailDBClient('localhost', 1865) as client:
         column_def('video_id', Type.STRING, nullable=False),
         column_def('keyframe_id', Type.INTEGER, nullable=False),
         column_def('tesseract_text', Type.STRING, nullable=True),
-        column_def('start_time', Type.INTEGER, nullable=False)
+        column_def('start_time', Type.INTEGER, nullable=False),
+        column_def('image_capture_text', Type.STRING, nullable=True)
     ]
     # Create entity feature vector
     client.create_entity('tal_db', 'text_search', text_columns)
@@ -58,5 +59,13 @@ with CottontailDBClient('localhost', 1865) as client:
     ]
     # Create entity feature vector
     client.create_entity('tal_db', 'video_search', video_columns)
+
+    # Define entity video columns
+    audio_columns = [
+        column_def('video_id', Type.STRING, nullable=False),
+        column_def('audio_transcription', Type.STRING, nullable=False)
+    ]
+    # Create entity feature vector
+    client.create_entity('tal_db', 'transcription', audio_columns)
 
 

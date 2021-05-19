@@ -400,6 +400,22 @@ class CottontailDBClient:
         result = self._dql.Query(query_message)
         return result 
 
+    def count(self, schema, entity):
+        # Base
+        schema_name = SchemaName(name = schema)
+        entity_name = EntityName(schema=schema_name, name=entity)
+        # Projection
+        projection_operation = Projection.ProjectionOperation.SUM
+        projection = Projection(op = projection_operation)
+        # From
+        from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
+        # Query
+        query = Query(**from_kwarg, projection = projection)
+        # Query Message
+        query_message = QueryMessage(txId=self._tid, query = query)
+        result = self._dql.Query(query_message)
+        return result 
+
     def select_where(self, schema, entity, column_names, searched_column, search_words):
         # Base
         schema_name = SchemaName(name = schema)
@@ -413,6 +429,39 @@ class CottontailDBClient:
             projection_element = Projection.ProjectionElement(column = column)
             projection_elements.append(projection_element)
         projection = Projection(columns  = projection_elements)
+        # Where
+        column_where = ColumnName(entity = entity_name, name = searched_column)
+        literal = []
+        for word in search_words:
+            add_literal = Literal(stringData = word)
+            literal.append(add_literal)
+        literals = Literals(literal = literal)
+        boolean_operand = AtomicBooleanOperand(literals = literals)
+        atomic = AtomicBooleanPredicate(
+            left = column_where, 
+            op = ComparisonOperator.LIKE, 
+            right = boolean_operand)
+        where = Where(atomic = atomic)
+        # Query
+        query = Query(**from_kwarg, projection = projection, where = where)
+        query_message = QueryMessage(txId=self._tid, query = query)
+        result = self._dql.Query(query_message)
+        return result 
+
+    def select_count(self, schema, entity, column_names, searched_column, search_words):
+        # Base
+        schema_name = SchemaName(name = schema)
+        entity_name = EntityName(schema=schema_name, name=entity)
+        # From
+        from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
+        # Projection
+        projection_elements = []
+        for column_name in column_names:
+            column = ColumnName(entity = entity_name, name = column_name)
+            projection_operation = Projection.ProjectionOperation.COUNT
+            projection_element = Projection.ProjectionElement(column = column)
+            projection_elements.append(projection_element)
+        projection = Projection(op = projection_operation, columns  = projection_elements)
         # Where
         column_where = ColumnName(entity = entity_name, name = searched_column)
         literal = []

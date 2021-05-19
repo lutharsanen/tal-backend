@@ -4,6 +4,7 @@ import os
 import json
 import re
 import pandas as pd
+import requests
 
 from cottontail_helper import get_all_filesname, get_keyframe_id
 from cottontaildb_client import CottontailDBClient, Literal
@@ -53,6 +54,12 @@ def run(path):
                 keyframe_id = get_keyframe_id(filename, videonr,path)
                 keyframe_nr = int(keyframe_id)-1
                 image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
+                with open(image,"rb") as file:
+                    file_form = {"image": (image, file,"image/png")}
+                    text_url = "http://localhost:5000/model/predict"
+                    r = requests.post(url = text_url, files = file_form)
+                    response = r.json()
+                    capture_text = response["predictions"][0]["caption"]
                 img = Image.open(image)
                 text = tess.image_to_string(img).strip("\n\x0c")
                 if text != (" " or "") and len(text) > 0:
@@ -61,7 +68,8 @@ def run(path):
                         'video_id': Literal(stringData = videonr),
                         'keyframe_id': Literal(intData=int(keyframe_id)),
                         'tesseract_text': Literal(stringData = text),
-                        'start_time':Literal(intData = int(start_time.iloc[keyframe_nr]["startframe"]))
+                        'start_time':Literal(intData = int(start_time.iloc[keyframe_nr]["startframe"])),
+                        'start_time':Literal(stringData = capture_text)
                     }
                     client.insert('tal_db', 'text_search', entry)
 

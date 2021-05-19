@@ -103,15 +103,17 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id, counter,start_ti
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered_resized"))[24:100]
+    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered_resized"))[25:]
     failed = {}
-    counter = 0
+    counter = 9714
     for videonr in tqdm(video_filelist):
+        print(videonr)
         failed[videonr] = []
         if videonr != ".idea":
             f = open(f"{path}/home/msb/{videonr}.tsv")
             read_tsv = pd.read_csv(f, delimiter="\t")
-            for filename in tqdm(get_all_filesname(f"{path}/home/keyframes_filtered_resized/{videonr}")):
+            files = get_all_filesname(f"{path}/home/keyframes_filtered_resized/{videonr}")[491:]
+            for filename in tqdm(files):
                 if filename != "Thumbs.db":
                     keyframe_id = get_keyframe_id(filename,videonr,path)
                     image = f"{path}/home/keyframes_filtered_resized/{videonr}/{filename}"

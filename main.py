@@ -1,34 +1,20 @@
 from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
-from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from sql_app import crud, models, schemas
-from sql_app.database import SessionLocal, engine
+import schemas
 
 from helper import stemming_algo, cottontail_to_df, cottontail_where_to_df, cottontail_object_number_search
 import numpy as np
 import pandas as pd
-
-models.Base.metadata.create_all(bind=engine)
 
 from cottontaildb.cottontaildb_client import CottontailDBClient, Type, Literal, column_def, float_vector
 from google.protobuf.json_format import MessageToDict
 import json
 
 app = FastAPI()
-
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -51,7 +37,7 @@ def test_api(request: schemas.Test):
 
 
 @app.get("/api/searchByVideoText")
-def get_text(text: str, db: Session = Depends(get_db)):
+def get_text(text: str):
     text = stemming_algo(text)
 
     with CottontailDBClient('localhost', 1865) as client:
@@ -71,7 +57,7 @@ def get_text(text: str, db: Session = Depends(get_db)):
 
 
 @app.get("/api/searchByDescription")
-def get_text(text: str, db: Session = Depends(get_db)):
+def get_text(text: str):
     text = stemming_algo(text)
 
     with CottontailDBClient('localhost', 1865) as client:
@@ -91,7 +77,7 @@ def get_text(text: str, db: Session = Depends(get_db)):
 
 
 @app.get("/api/searchByTitle")
-def get_text(text: str, db: Session = Depends(get_db)):
+def get_text(text: str):
     text = stemming_algo(text)
 
     with CottontailDBClient('localhost', 1865) as client:
@@ -110,7 +96,7 @@ def get_text(text: str, db: Session = Depends(get_db)):
     return {"results": response}
 
 @app.get("/api/searchByTag")
-def get_text(text: str, db: Session = Depends(get_db)):
+def get_text(text: str):
     text = stemming_algo(text)
 
     with CottontailDBClient('localhost', 1865) as client:
@@ -126,6 +112,26 @@ def get_text(text: str, db: Session = Depends(get_db)):
             response[f"data_{i}"] = dict()
             response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+    return {"results": response}
+
+@app.get("/api/searchByImageCapture")
+def get_text(text: str):
+    text = stemming_algo(text)
+
+    with CottontailDBClient('localhost', 1865) as client:
+        result = client.select_where("tal_db","text_search", ["video_id","keyframe_id", "start_time"], "image_capture_text", [f"%{text}%"])
+        result = MessageToDict(list(result)[0])
+        response = {}
+        columns = result["columns"]
+        if 'tuples' in result.keys():
+            results = result["tuples"]
+        else:
+            return {"results": []}
+        for i, tuple in enumerate(results):
+            response[f"data_{i}"] = dict()
+            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["intData"]
+            response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"] 
     return {"results": response}
 
 ################ Cottonttail API-Calls ############################
@@ -147,47 +153,47 @@ def get_sketch(request: schemas.ColorSketchInput):
         merged_df = merged_df.drop(['color_vector', 'sketch_vector'], axis=1).sort_values(by=['distance'])
         response = merged_df.drop_duplicates(subset=['box_id']).head(10).to_dict(orient="records")
 
-    return {"result": response}
+    return {"results": response}
 
 @app.post("/api/searchByColor")
 def get_sketch(request: schemas.ColorInput):
     color_query = [
-        request._0.red,
-        request._0.green,
-        request._0.blue,
-        request._1.red,
-        request._1.green,
-        request._1.blue,
-        request._2.red,
-        request._2.green,
-        request._2.blue,
-        request._3.red,
-        request._3.green,
-        request._3.blue,
-        request._4.red,
-        request._4.green,
-        request._4.blue,
-        request._5.red,
-        request._5.green,
-        request._5.blue,
-        request._6.red,
-        request._6.green,
-        request._6.blue,
-        request._7.red,
-        request._7.green,
-        request._7.blue,
-        request._8.red,
-        request._8.green,
-        request._8.blue,
-        request._9.red,
-        request._9.green,
-        request._9.blue,
-        request._10.red,
-        request._10.green,
-        request._10.blue,
-        request._11.red,
-        request._11.green,
-        request._11.blue,
+        request.c0.red,
+        request.c0.green,
+        request.c0.blue,
+        request.c1.red,
+        request.c1.green,
+        request.c1.blue,
+        request.c2.red,
+        request.c2.green,
+        request.c2.blue,
+        request.c3.red,
+        request.c3.green,
+        request.c3.blue,
+        request.c4.red,
+        request.c4.green,
+        request.c4.blue,
+        request.c5.red,
+        request.c5.green,
+        request.c5.blue,
+        request.c6.red,
+        request.c6.green,
+        request.c6.blue,
+        request.c7.red,
+        request.c7.green,
+        request.c7.blue,
+        request.c8.red,
+        request.c8.green,
+        request.c8.blue,
+        request.c9.red,
+        request.c9.green,
+        request.c9.blue,
+        request.c10.red,
+        request.c10.green,
+        request.c10.blue,
+        request.c11.red,
+        request.c11.green,
+        request.c11.blue,
         ]
 
     with CottontailDBClient('localhost', 1865) as client:
@@ -195,14 +201,17 @@ def get_sketch(request: schemas.ColorInput):
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
-        results = result["tuples"]
+        if 'tuples' in result.keys():
+            results = result["tuples"]
+        else:
+            return {"results": []}
         for i, tuple in enumerate(results):
             response[f"data_{i}"] = dict()
             response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["doubleData"]
             response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
             response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
             response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
-    return {"result": response}
+    return {"results": response}
 
 @app.post("/api/searchByObjectSketch")
 def get_sketch(request: schemas.ObjectSketchInput):
@@ -216,7 +225,10 @@ def get_sketch(request: schemas.ObjectSketchInput):
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
-        results = result["tuples"]
+        if 'tuples' in result.keys():
+            results = result["tuples"]
+        else:
+            return {"results": []}
         for i, tuple in enumerate(results):
             response[f"data_{i}"] = dict()
             response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
@@ -224,7 +236,7 @@ def get_sketch(request: schemas.ObjectSketchInput):
             response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
             response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
             
-    return {"result": response}
+    return {"results": response}
 
 @app.post("/api/searchByNumberObject")
 def get_sketch(request: schemas.ObjectNumber):
@@ -238,7 +250,7 @@ def get_sketch(request: schemas.ObjectNumber):
         response = cottontail_object_number_search(result, number)
 
 
-    return {"result": response.to_dict(orient="records")}
+    return {"results": response.to_dict(orient="records")}
 
 ##################### Sipmle Get-Request ###################################
 
@@ -252,7 +264,7 @@ def all_tags():
         for i, tuple in enumerate(results):
             response.append(tuple["data"][0]["stringData"])
 
-    return {"result": response}
+    return {"results": response}
 
 @app.get("/api/getAllColors")
 def all_tags():
@@ -287,6 +299,6 @@ def all_tags():
         for i, tuple in enumerate(results):
             response.append(tuple["data"][0]["stringData"])
 
-    return {"result": response}
+    return {"results": response}
 
 
