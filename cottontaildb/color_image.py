@@ -56,18 +56,23 @@ def find_dominant_color(image):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[10:]
+    #video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[10:]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[10:]
     failed = {}
+    
     for videonr in tqdm(video_filelist):
         failed[videonr] = []
-        f = open(f"{path}/home/msb/{videonr}.tsv")
+        #f = open(f"{path}/home/msb/{videonr}.tsv")
+        f = open(f"{path}/msb/{videonr}.tsv")
         start_times = pd.read_csv(f, delimiter="\t")
-        for filename in tqdm(get_all_filesname(f"{path}/home/keyframes_filtered/{videonr}")):
-            if filename != "Thumbs.db":
+        #for filename in tqdm(get_all_filesname(f"{path}/home/keyframes_filtered/{videonr}")):
+        for filename in tqdm(get_all_filesname(f"{path}/keyframes_filtered/{videonr}")):
+            if filename != "Thumbs.db" and filename!= ".DAV":
                 keyframe_id = get_keyframe_id(filename,videonr,path)
                 keyframe_nr = int(keyframe_id)-1
                 #image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
-                image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
+                #image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
+                image = f"{path}/keyframes_filtered/{videonr}/{filename}"
                 xPieces = 4
                 yPieces = 3
                 colors = []
@@ -94,8 +99,9 @@ def run(path):
                     client.insert('tal_db', 'color_image', entry)
 
 # change this path according to your computer
-path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
+# path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
 #path = "/media/lkunam/Elements/Video Retrieval System"
+path = 'Y:/TAL'
 
 run(path)
 
