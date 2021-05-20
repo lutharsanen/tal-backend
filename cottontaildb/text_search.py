@@ -63,7 +63,7 @@ def run(path):
                 img = Image.open(image)
                 text = tess.image_to_string(img).strip("\n\x0c")
                 if text != (" " or "") and len(text) > 0:
-                    text.replace("/n", " ")
+                    text.replace("/n", " ").lower()
                     entry = {
                         'video_id': Literal(stringData = videonr),
                         'keyframe_id': Literal(intData=int(keyframe_id)),
