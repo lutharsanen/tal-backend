@@ -26,7 +26,7 @@ def cleanhtml(raw_html):
 
 
 def run(path):
-    video_filelist = get_all_filesname(f"{path}/home/keyframes_filtered")[:5]
+    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[:10]
 
     for videonr in tqdm(video_filelist):
         #f = open(f"D:\\Video Retrieval System\\info\\{videonr}.json")
@@ -69,7 +69,7 @@ def run(path):
                         'keyframe_id': Literal(intData=int(keyframe_id)),
                         'tesseract_text': Literal(stringData = text),
                         'start_time':Literal(intData = int(start_time.iloc[keyframe_nr]["startframe"])),
-                        'start_time':Literal(stringData = capture_text)
+                        'image_capture_text':Literal(stringData = capture_text)
                     }
                     client.insert('tal_db', 'text_search', entry)
 
