@@ -185,7 +185,42 @@ def get_sketch(request: schemas.DoubleObjectSketchInput):
 
     return {"results": response}
 
-@app.post("/api/searchByColor")
+
+@app.post("/api/searchByThreeObjects")
+def get_sketch(request: schemas.ThreeObjectSketchInput):
+    # (x1,y1) is lower left and (x2,y2) is upper right
+    sketch1_query = [request.sketch1.x1,request.sketch1.y1,request.sketch1.x2,request.sketch1.y2]
+    object1_query = request.object1
+
+    sketch2_query = [request.sketch2.x1,request.sketch2.y1,request.sketch2.x2,request.sketch2.y2]
+    object2_query = request.object2
+
+    sketch3_query = [request.sketch3.x1,request.sketch3.y1,request.sketch3.x2,request.sketch3.y2]
+    object3_query = request.object3
+
+
+    with CottontailDBClient('localhost', 1865) as client:
+        result1_sketch = client.knn_where(sketch1_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object1_query],2000)
+        df_sketch1 = cottontail_where_to_df(result1_sketch, "sketch_vector")
+        print(df_sketch1)
+        result2_sketch = client.knn_where(sketch2_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object2_query],2000)
+        df_sketch2 = cottontail_where_to_df(result2_sketch, "sketch_vector")
+        print(df_sketch2)
+
+        result3_sketch = client.knn_where(sketch3_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object3_query],2000)
+        df_sketch3 = cottontail_where_to_df(result3_sketch, "sketch_vector")
+        print(df_sketch3)
+
+        merged_df = df_sketch1.merge(df_sketch2,on=['video_id',"keyframe_id","start_time"]).merge(df_sketch3,on=['video_id',"keyframe_id","start_time"])
+        print(merged_df)
+        merged_df["distance"] = 1/3 * merged_df["sketch_vector_x"] + 1/3 * merged_df["sketch_vector_y"] + 1/3 * merged_df["sketch_vector"]
+        merged_df = merged_df.drop(['sketch_vector_x','sketch_vector_y','sketch_vector','box_id_x','box_id_y','box_id'], axis=1).sort_values(by=['distance'])
+        response = merged_df.head(10).to_dict(orient="records")
+        print(response)
+
+    return {"results": response}
+
+@app.post("/api/searchByColor") 
 def get_sketch(request: schemas.ColorInput):
     color_query = [
         request.c0.red,
