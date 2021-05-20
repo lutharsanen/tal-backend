@@ -50,9 +50,9 @@ def get_text(text: str):
         else:
             return {"results": []}
         for i, tuple in enumerate(results):
-            response[f"data_{i}"] = dict()
-            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+            response[f"{i}"] = dict()
+            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
     return {"results": response}
 
 
@@ -70,9 +70,9 @@ def get_text(text: str):
         else:
             return {"results": []}
         for i, tuple in enumerate(results):
-            response[f"data_{i}"] = dict()
-            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+            response[f"{i}"] = dict()
+            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
     return {"results": response}
 
 
@@ -90,9 +90,9 @@ def get_text(text: str):
         else:
             return {"results": []}
         for i, tuple in enumerate(results):
-            response[f"data_{i}"] = dict()
-            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+            response[f"{i}"] = dict()
+            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
     return {"results": response}
 
 @app.get("/api/searchByTag")
@@ -109,9 +109,9 @@ def get_text(text: str):
         else:
             return {"results": []}
         for i, tuple in enumerate(results):
-            response[f"data_{i}"] = dict()
-            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+            response[f"{i}"] = dict()
+            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
     return {"results": response}
 
 @app.get("/api/searchByImageCapture")
@@ -119,19 +119,21 @@ def get_text(text: str):
     text = stemming_algo(text)
 
     with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","text_search", ["video_id","keyframe_id", "start_time"], "image_capture_text", [f"%{text}%"])
+        result = client.select_where("tal_db","text_search", ["video_id","keyframe_id", "start_time","image_capture_text"], "image_capture_text", [f"%{text}%"])
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
         if 'tuples' in result.keys():
             results = result["tuples"]
+            print(results)
         else:
             return {"results": []}
         for i, tuple in enumerate(results):
-            response[f"data_{i}"] = dict()
-            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["intData"]
-            response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"] 
+            response[f"{i}"] = dict()
+            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+            response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
+            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
     return {"results": response}
 
 ################ Cottonttail API-Calls ############################
@@ -144,14 +146,42 @@ def get_sketch(request: schemas.ColorSketchInput):
     object_query = request.object
 
     with CottontailDBClient('localhost', 1865) as client:
-        result_sketch = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object_query])
+        result_sketch = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object_query],2000)
         df_sketch = cottontail_where_to_df(result_sketch, "sketch_vector")
-        result_color = client.knn(color_query,"tal_db","sketch","color_vector", ["box_id","video_id", "keyframe_id","start_time", "distance"],500)
+        print(df_sketch)
+        result_color = client.knn(color_query,"tal_db","sketch","color_vector", ["box_id","video_id", "keyframe_id","start_time", "distance"],2000)
         df_color = cottontail_to_df(result_color, "color_vector")
+        print(df_color)
         merged_df = pd.merge(df_sketch,df_color,on=['box_id','video_id',"keyframe_id","start_time"])
         merged_df["distance"] = 0.5 * merged_df["color_vector"] + 0.5 * merged_df["sketch_vector"]
         merged_df = merged_df.drop(['color_vector', 'sketch_vector'], axis=1).sort_values(by=['distance'])
         response = merged_df.drop_duplicates(subset=['box_id']).head(10).to_dict(orient="records")
+        print(response)
+
+    return {"results": response}
+
+@app.post("/api/searchByTwoObjects")
+def get_sketch(request: schemas.DoubleObjectSketchInput):
+    # (x1,y1) is lower left and (x2,y2) is upper right
+    sketch1_query = [request.sketch1.x1,request.sketch1.y1,request.sketch1.x2,request.sketch1.y2]
+    object1_query = request.object1
+
+    sketch2_query = [request.sketch2.x1,request.sketch2.y1,request.sketch2.x2,request.sketch2.y2]
+    object2_query = request.object2
+
+    with CottontailDBClient('localhost', 1865) as client:
+        result1_sketch = client.knn_where(sketch1_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object1_query],2000)
+        df_sketch1 = cottontail_where_to_df(result1_sketch, "sketch_vector")
+        print(df_sketch1)
+        result2_sketch = client.knn_where(sketch2_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object2_query],2000)
+        df_sketch2 = cottontail_where_to_df(result2_sketch, "sketch_vector")
+        print(df_sketch2)
+        merged_df = pd.merge(df_sketch1,df_sketch2,on=['video_id',"keyframe_id","start_time"])
+        print(merged_df)
+        merged_df["distance"] = 0.5 * merged_df["sketch_vector_x"] + 0.5 * merged_df["sketch_vector_y"]
+        merged_df = merged_df.drop(['sketch_vector_x','sketch_vector_y','object_x','object_y','box_id_x','box_id_y'], axis=1).sort_values(by=['distance'])
+        response = merged_df.head(10).to_dict(orient="records")
+        print(response)
 
     return {"results": response}
 
@@ -206,11 +236,11 @@ def get_sketch(request: schemas.ColorInput):
         else:
             return {"results": []}
         for i, tuple in enumerate(results):
-            response[f"data_{i}"] = dict()
-            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["doubleData"]
-            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
-            response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
-            response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
+            response[f"{i}"] = dict()
+            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["doubleData"]
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+            response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
+            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
     return {"results": response}
 
 @app.post("/api/searchByObjectSketch")
@@ -221,7 +251,7 @@ def get_sketch(request: schemas.ObjectSketchInput):
     
     with CottontailDBClient('localhost', 1865) as client:
         
-        result = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["video_id", "keyframe_id", "distance", "object"],[object_query])
+        result = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["video_id", "keyframe_id", "distance", "object"],[object_query],200)
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
@@ -230,11 +260,11 @@ def get_sketch(request: schemas.ObjectSketchInput):
         else:
             return {"results": []}
         for i, tuple in enumerate(results):
-            response[f"data_{i}"] = dict()
-            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["doubleData"]
-            response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
-            response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
+            response[f"{i}"] = dict()
+            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["doubleData"]
+            response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
+            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
             
     return {"results": response}
 
@@ -296,7 +326,7 @@ def all_tags():
         result = MessageToDict(list(result)[0])
         response = []
         results = result["tuples"]
-        for i, tuple in enumerate(results):
+        for tuple in results:
             response.append(tuple["data"][0]["stringData"])
 
     return {"results": response}

@@ -101,7 +101,9 @@ def run(path):
 # change this path according to your computer
 # path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
 #path = "/media/lkunam/Elements/Video Retrieval System"
-path = 'Y:/TAL'
+#path = 'Y:/TAL'
+#path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
+path = "/media/lkunam/Elements/Video Retrieval System"
 
 run(path)
 

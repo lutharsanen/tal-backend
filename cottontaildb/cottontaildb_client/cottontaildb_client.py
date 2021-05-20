@@ -338,8 +338,7 @@ class CottontailDBClient:
         return result
 
         # knn uses query and uses knn as a
-    def knn_where(self,input_vector, schema, entity, searched_knn, searched_where, generated_column_names,search_words):
-        k = 10
+    def knn_where(self,input_vector, schema, entity, searched_knn, searched_where, generated_column_names,search_words,k):
         if type(input_vector[0] == float):
             vector = float_vector_query(input_vector)
         else:
