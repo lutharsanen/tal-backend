@@ -57,7 +57,7 @@ def find_dominant_color(image):
 
 def run(path):
     #video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[10:]
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[53:]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[269:]
     failed = {}
     
     for videonr in tqdm(video_filelist):
@@ -101,9 +101,9 @@ def run(path):
 # change this path according to your computer
 # path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
 #path = "/media/lkunam/Elements/Video Retrieval System"
-#path = 'Y:/TAL'
+path = 'Y:/TAL'
 #path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
-path = "/media/lkunam/Elements/Video Retrieval System"
+#path = "/media/lkunam/Elements/Video Retrieval System"
 
 run(path)
 
