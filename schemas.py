@@ -61,6 +61,21 @@ class ObjectSketchInput(BaseModel):
     object: str
     sketch: SketchBox
 
+class DoubleObjectSketchInput(BaseModel):
+    object1: str
+    sketch1: SketchBox
+    object2: str
+    sketch2: SketchBox
+
+class ThreeObjectSketchInput(BaseModel):
+    object1: str
+    sketch1: SketchBox
+    object2: str
+    sketch2: SketchBox
+    object3: str
+    sketch3: SketchBox
+
+
 class Test(BaseModel):
     test: RGB
 

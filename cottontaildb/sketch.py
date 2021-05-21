@@ -103,20 +103,20 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id, counter,start_ti
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered_resized"))[25:]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered_resized"))[25:100]
     failed = {}
     counter = 9714
     for videonr in tqdm(video_filelist):
         print(videonr)
         failed[videonr] = []
         if videonr != ".idea":
-            f = open(f"{path}/home/msb/{videonr}.tsv")
+            f = open(f"{path}/msb/{videonr}.tsv")
             read_tsv = pd.read_csv(f, delimiter="\t")
-            files = get_all_filesname(f"{path}/home/keyframes_filtered_resized/{videonr}")[491:]
+            files = get_all_filesname(f"{path}/keyframes_filtered_resized/{videonr}")
             for filename in tqdm(files):
                 if filename != "Thumbs.db":
                     keyframe_id = get_keyframe_id(filename,videonr,path)
-                    image = f"{path}/home/keyframes_filtered_resized/{videonr}/{filename}"
+                    image = f"{path}/keyframes_filtered_resized/{videonr}/{filename}"
                     #try:
                     new_counter = store_color_sketch_from_masks(image, videonr, keyframe_id,counter,read_tsv)
                     counter = new_counter
@@ -130,7 +130,7 @@ def run(path):
     
 
 # change this path according to your computer
-path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
-
+#path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
+path = "/media/lkunam/Elements/Video Retrieval System"
 
 run(path)
