@@ -317,7 +317,7 @@ def get_sketch(request: schemas.ObjectNumber):
 
     return {"results": response.to_dict(orient="records")}
 
-##################### Sipmle Get-Request ###################################
+##################### Simple Get-Request ###################################
 
 @app.get("/api/getAllTags")
 def all_tags():
@@ -352,7 +352,7 @@ def all_tags():
     (0,0,128), #navy
     (255,165,0) #orange
 )
-    return {"result": COLORS}
+    return {"results": COLORS}
 
 @app.get("/api/getAllObjects")
 def all_tags():
