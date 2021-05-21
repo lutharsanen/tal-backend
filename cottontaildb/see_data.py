@@ -1,4 +1,4 @@
-from cottontaildb_client import CottontailDBClient,column_def,Type
+from cottontaildb_client import CottontailDBClient,column_def,Type,Literal
 from google.protobuf.json_format import MessageToDict
 import pandas as pd
 
@@ -33,9 +33,33 @@ with CottontailDBClient('localhost', 1865) as client:
     print(client.get_entity_details("tal_db", "text_search"))
     print(client.get_entity_details("tal_db", "video_tags"))
     print(client.get_entity_details("tal_db", "video_search"))"""
+    print(client.get_entity_details("tal_db", "transcription"))
+    
+    #result = client.select("tal_db", "sketch",["box_id","video_id", "keyframe_id","object","start_time"])
+    
 
-    result = client.select("tal_db", "sketch",["box_id","video_id", "keyframe_id","object","start_time"])
+
+    # Define entity tag columns
+    test_columns = [
+        column_def('test', Type.INTEGER, nullable=False),
+        column_def('test_value', Type.INTEGER, nullable=False)
+    ]
+
+    # Create entity feature vector
+    client.create_entity('tal_db', 'test', test_columns)
+
+    columns = ['test', 'test_value']
+    
+    values = [
+        [Literal(stringData='test_10'), Literal(intData=10)],
+        [Literal(stringData='test_20'), Literal(intData=20)]
+    ]
+
+    client.insert_batch('tal_db', 'test', columns, values)
+    result = client.select('tal_db', 'test', ['test', 'test_value'])
     result = MessageToDict(list(result)[0])
+    
+    '''
     response = {}
     columns = result["columns"]
     results = result["tuples"]
@@ -57,5 +81,5 @@ with CottontailDBClient('localhost', 1865) as client:
     df_new = df_t.groupby(['keyframe_id', 'video_id','object','start_time']).size().reset_index(name="count")
 
     result = df_new[df_new["count"] >= 2].sort_values(by=['count'],ascending=False)
-
+'''
     print(result)
