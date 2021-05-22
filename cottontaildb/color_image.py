@@ -57,7 +57,7 @@ def find_dominant_color(image):
 
 def run(path):
     #video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[10:]
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[269:]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[698:]
     failed = {}
     
     for videonr in tqdm(video_filelist):
