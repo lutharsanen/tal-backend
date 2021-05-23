@@ -37,6 +37,7 @@ def run(path):
             with CottontailDBClient('localhost', 1865) as client:    
                 entry = {
                     'video_id': Literal(stringData = videonr),
+                    'vimeo_id': Literal(stringData = data["vimeoId"].lower()),
                     'title': Literal(stringData = data["title"].lower()),
                     'description': Literal(stringData = cleanhtml(data["description"]).lower())
                 }
