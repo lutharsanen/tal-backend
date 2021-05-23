@@ -132,9 +132,9 @@ def get_text(text: str):
         for i, tuple in enumerate(results):
             response[f"{i}"] = dict()
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["intData"]
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
             response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
-            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
+            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"]
     return {"results": list(response.values())}
 
 ################ Cottonttail API-Calls ############################
@@ -277,7 +277,7 @@ def get_sketch(request: schemas.ColorInput):
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
             response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
             response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
-    return {"results": response}
+    return {"results": list(response.values())}
 
 @app.post("/api/searchByObjectSketch")
 def get_sketch(request: schemas.ObjectSketchInput):
@@ -302,7 +302,7 @@ def get_sketch(request: schemas.ObjectSketchInput):
             response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
             response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
             
-    return {"results": response}
+    return {"results": list(response.values())}
 
 @app.post("/api/searchByNumberObject")
 def get_sketch(request: schemas.ObjectNumber):
