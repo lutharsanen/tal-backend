@@ -53,7 +53,7 @@ def get_text(text: str):
             response[f"{i}"] = dict()
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": response}
+    return {"results": list(response.values())}
 
 
 @app.get("/api/searchByDescription")
@@ -73,7 +73,7 @@ def get_text(text: str):
             response[f"{i}"] = dict()
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": response}
+    return {"results": list(response.values())}
 
 
 @app.get("/api/searchByTitle")
@@ -93,7 +93,7 @@ def get_text(text: str):
             response[f"{i}"] = dict()
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": response}
+    return {"results": list(response.values())}
 
 @app.get("/api/searchByTag")
 def get_text(text: str):
@@ -112,7 +112,7 @@ def get_text(text: str):
             response[f"{i}"] = dict()
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": response}
+    return {"results": list(response.values())}
 
 @app.get("/api/searchByImageCapture")
 def get_text(text: str):
@@ -134,7 +134,7 @@ def get_text(text: str):
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
             response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
             response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
-    return {"results": response}
+    return {"results": list(response.values())}
 
 ################ Cottonttail API-Calls ############################
 
