@@ -93,7 +93,7 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id, counter,start_ti
                 'sketch_vector': float_vector(box.tolist()),
                 'color_vector': float_vector(dominant_color),
                 'object': Literal(stringData = object),
-                'start_time':Literal(intData = int(start_time.iloc[keyframe_nr]["startframe"]))
+                'start_time':Literal(intData = int(start_time.iloc[keyframe_nr]["starttime"]))
             }
             client.insert('tal_db', 'sketch', entry)
     return counter

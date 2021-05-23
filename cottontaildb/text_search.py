@@ -70,7 +70,7 @@ def run(path):
                                 'video_id': Literal(stringData = videonr),
                                 'keyframe_id': Literal(intData=int(keyframe_id)),
                                 'tesseract_text': Literal(stringData = text),
-                                'start_time':Literal(intData = int(start_time.iloc[keyframe_nr]["startframe"])),
+                                'start_time':Literal(intData = int(start_time.iloc[keyframe_nr]["starttime"])),
                                 'image_capture_text':Literal(stringData = capture_text)
                             }
                             client.insert('tal_db', 'text_search', entry)

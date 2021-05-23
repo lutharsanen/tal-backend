@@ -94,7 +94,7 @@ def run(path):
                         'video_id': Literal(stringData=str(videonr)),
                         'keyframe_id': Literal(intData=int(keyframe_id)), 
                         'dominant_color_vector': float_vector(color_list),
-                        'start_time':Literal(intData = int(start_times.iloc[keyframe_nr]["startframe"]))
+                        'start_time':Literal(intData = int(start_times.iloc[keyframe_nr]["starttime"]))
                     }
                     client.insert('tal_db', 'color_image', entry)
 
