@@ -61,7 +61,7 @@ def get_text(text: str):
     text = stemming_algo(text)
 
     with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","text_search", ["video_id","description"], "description", [f"%{text}%"])
+        result = client.select_where("tal_db","video_search", ["video_id","description"], "description", [f"%{text}%"])
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
@@ -81,7 +81,7 @@ def get_text(text: str):
     text = stemming_algo(text)
 
     with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","text_search", ["video_id","title"], "title", [f"%{text}%"])
+        result = client.select_where("tal_db","video_search", ["video_id","title"], "title", [f"%{text}%"])
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
