@@ -41,7 +41,7 @@ def get_text(text: str):
     text = stemming_algo(text)
 
     with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","text_search", ["video_id","tesseract_text"], "tesseract_text", [f"%{text}%"])
+        result = client.select_where("tal_db","text_search", ["video_id", "tesseract_text", "keyframe_id"], "tesseract_text", [f"%{text}%"])
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
@@ -52,8 +52,9 @@ def get_text(text: str):
         for i, tuple in enumerate(results):
             response[f"{i}"] = dict()
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": response}
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+            response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]  
+    return {"results": list(response.values())}
 
 
 @app.get("/api/searchByDescription")
@@ -61,7 +62,7 @@ def get_text(text: str):
     text = stemming_algo(text)
 
     with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","text_search", ["video_id","description"], "description", [f"%{text}%"])
+        result = client.select_where("tal_db","video_search", ["video_id","description"], "description", [f"%{text}%"])
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
@@ -73,7 +74,7 @@ def get_text(text: str):
             response[f"{i}"] = dict()
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": response}
+    return {"results": list(response.values())}
 
 
 @app.get("/api/searchByTitle")
@@ -81,7 +82,7 @@ def get_text(text: str):
     text = stemming_algo(text)
 
     with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","text_search", ["video_id","title"], "title", [f"%{text}%"])
+        result = client.select_where("tal_db","video_search", ["video_id","title"], "title", [f"%{text}%"])
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
@@ -93,7 +94,7 @@ def get_text(text: str):
             response[f"{i}"] = dict()
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": response}
+    return {"results": list(response.values())}
 
 @app.get("/api/searchByTag")
 def get_text(text: str):
@@ -112,7 +113,7 @@ def get_text(text: str):
             response[f"{i}"] = dict()
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": response}
+    return {"results": list(response.values())}
 
 @app.get("/api/searchByImageCapture")
 def get_text(text: str):
@@ -133,8 +134,8 @@ def get_text(text: str):
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
             response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
-            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
-    return {"results": response}
+            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"]
+    return {"results": list(response.values())}
 
 ################ Cottonttail API-Calls ############################
 
@@ -276,7 +277,7 @@ def get_sketch(request: schemas.ColorInput):
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
             response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
             response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
-    return {"results": response}
+    return {"results": list(response.values())}
 
 @app.post("/api/searchByObjectSketch")
 def get_sketch(request: schemas.ObjectSketchInput):
@@ -301,7 +302,7 @@ def get_sketch(request: schemas.ObjectSketchInput):
             response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
             response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
             
-    return {"results": response}
+    return {"results": list(response.values())}
 
 @app.post("/api/searchByNumberObject")
 def get_sketch(request: schemas.ObjectNumber):
