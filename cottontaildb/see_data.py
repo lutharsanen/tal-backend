@@ -4,10 +4,9 @@ import pandas as pd
 
 
 with CottontailDBClient('localhost', 1865) as client:
+
+    client.drop_entity("tal_db","object_count")
     """
-    client.drop_entity("tal_db","text_search")
-    client.drop_entity("tal_db","video_search")
-    client.drop_entity("tal_db","video_tags")
     text_columns = [
         column_def('video_id', Type.STRING, nullable=False),
         column_def('keyframe_id', Type.INTEGER, nullable=False),
@@ -35,53 +34,9 @@ with CottontailDBClient('localhost', 1865) as client:
     #print(client.get_entity_details("tal_db", "video_search"))
     #print(client.get_entity_details("tal_db", "video_search"))
     
-    result = client.select("tal_db", "color_image",["video_id", "keyframe_id"])
+    #result = client.select("tal_db", "color_image",["video_id", "keyframe_id"])
     #result = client.knn([0,0,0,0], "tal_db","color_image", "dominant_color_vector", ["video_id", "keyframe_id", "start_time","distance"])
-    result = MessageToDict(list(result)[0])
+    #result = MessageToDict(list(result)[0])
 
-    print(result)
+    #print(result)
     
-    """
-
-    # Define entity tag columns
-    test_columns = [
-        column_def('test', Type.INTEGER, nullable=False),
-        column_def('test_value', Type.INTEGER, nullable=False)
-    ]
-
-    # Create entity feature vector
-    client.create_entity('tal_db', 'test', test_columns)
-
-    columns = ['test', 'test_value']
-    
-    values = [
-        [Literal(stringData='test_10'), Literal(intData=10)],
-        [Literal(stringData='test_20'), Literal(intData=20)]
-    ]
-
-    client.insert_batch('tal_db', 'test', columns, values)
-    result = client.select('tal_db', 'test', ['test', 'test_value'])
-    result = MessageToDict(list(result)[0])
-
-    response = {}
-    columns = result["columns"]
-    results = result["tuples"]
-
-    for i, tuple in enumerate(results):
-        response[f"{i}"] = dict()
-        response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["intData"]
-        response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
-        response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
-        response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["stringData"]
-        response[f"{i}"][columns[4]["name"]] = tuple["data"][4]["intData"]
-
-
-    df = pd.DataFrame.from_dict(response)
-
-    df_t = df.T
-
-    df_t=df_t.drop_duplicates(['box_id'])
-    df_new = df_t.groupby(['keyframe_id', 'video_id','object','start_time']).size().reset_index(name="count")
-
-    result = df_new[df_new["count"] >= 2].sort_values(by=['count'],ascending=False)
-    """
