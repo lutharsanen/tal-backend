@@ -263,7 +263,7 @@ def get_sketch(request: schemas.ColorInput):
         ]
 
     with CottontailDBClient('localhost', 1865) as client:
-        result = client.knn(color_query, "tal_db","color_image","dominant_color_vector", ["video_id", "keyframe_id", "start_time","distance"])
+        result = client.knn(color_query, "tal_db","color_image","dominant_color_vector", ["video_id", "keyframe_id", "start_time","distance"],500)
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
