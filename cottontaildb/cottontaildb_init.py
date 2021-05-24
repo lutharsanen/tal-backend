@@ -64,7 +64,7 @@ with CottontailDBClient('localhost', 1865) as client:
     # Define entity video columns
     audio_columns = [
         column_def('video_id', Type.STRING, nullable=False),
-        column_def('audio_transcription', Type.STRING, nullable=False)
+        column_def('audio_transcription', Type.STRING, nullable=True)
     ]
     # Create entity feature vector
     client.create_entity('tal_db', 'transcription', audio_columns)
