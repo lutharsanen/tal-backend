@@ -12,7 +12,7 @@ with CottontailDBClient('localhost', 1865) as client:
         column_def('keyframe_id', Type.INTEGER, nullable=False),
         column_def('object', Type.STRING, nullable=False),
         column_def('count', Type.INTEGER, nullable=False),
-        column_def('start_time', Type.INTEGER, nullable=False)
+        column_def('start_time', Type.FLOAT, nullable=False)
     ]
     # Create entity color sketch
     client.create_entity('tal_db', 'object_count', count_columns)
@@ -30,7 +30,7 @@ with CottontailDBClient('localhost', 1865) as client:
         response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
         response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
         response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["stringData"]
-        response[f"{i}"][columns[4]["name"]] = tuple["data"][4]["intData"]
+        response[f"{i}"][columns[4]["name"]] = tuple["data"][4]["floatData"]
 
 
     df = pd.DataFrame.from_dict(response)
@@ -49,6 +49,6 @@ with CottontailDBClient('localhost', 1865) as client:
                 'keyframe_id': Literal(intData=int(row[1]["keyframe_id"])),
                 'object': Literal(stringData = row[1]["object"]),
                 'count': Literal(intData = row[1]["count"]),
-                'start_time':Literal(intData = int(row[1]["start_time"])),
+                'start_time':Literal(floatData = float(row[1]["starttime"])),
             }
             client.insert('tal_db', 'object_count', entry)

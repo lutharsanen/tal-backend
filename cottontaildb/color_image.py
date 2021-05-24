@@ -57,7 +57,7 @@ def find_dominant_color(image):
 
 def run(path):
     #video_filelist = sorted(get_all_filesname(f"{path}/home/keyframes_filtered"))[10:]
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[698:]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[:10]
     failed = {}
     
     for videonr in tqdm(video_filelist):
@@ -70,7 +70,6 @@ def run(path):
             if filename != "Thumbs.db" and filename!= ".DAV":
                 keyframe_id = get_keyframe_id(filename,videonr,path)
                 keyframe_nr = int(keyframe_id)-1
-                #image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
                 #image = f"{path}/home/keyframes_filtered/{videonr}/{filename}"
                 image = f"{path}/keyframes_filtered/{videonr}/{filename}"
                 xPieces = 4
@@ -94,16 +93,15 @@ def run(path):
                         'video_id': Literal(stringData=str(videonr)),
                         'keyframe_id': Literal(intData=int(keyframe_id)), 
                         'dominant_color_vector': float_vector(color_list),
-                        'start_time':Literal(intData = int(start_times.iloc[keyframe_nr]["starttime"]))
+                        'start_time':Literal(floatData = float(start_times.iloc[keyframe_nr]["starttime"]))
                     }
                     client.insert('tal_db', 'color_image', entry)
 
-# change this path according to your computer
+## change this path according to your computer (runs best locally and not on the server)
+#--------------------------------------------------------------------------------------
 # path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
-#path = "/media/lkunam/Elements/Video Retrieval System"
+# path = "/media/lkunam/Elements/Video Retrieval System"
 path = 'Y:/TAL'
-#path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
-#path = "/media/lkunam/Elements/Video Retrieval System"
 
 run(path)
 

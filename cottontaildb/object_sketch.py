@@ -15,7 +15,7 @@ from detectron2.config import get_cfg
 from detectron2.utils.visualizer import Visualizer
 from detectron2.data import MetadataCatalog
 
-def store_classe_sketch_from_box(image, video_id, keyframe_id, counter):
+def store_classe_sketch_from_box(image, video_id, keyframe_id, counter, start_time):
     detectron2_img = cv2.imread(image)
     cfg = get_cfg()
     cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
@@ -32,6 +32,7 @@ def store_classe_sketch_from_box(image, video_id, keyframe_id, counter):
         num = data.item()
         counter +=1
         object = MetadataCatalog.get(cfg.DATASETS.TRAIN[0]).thing_classes[num]
+        keyframe_nr = int(keyframe_id)-1
         ###### cottontail db logic ######
         # store object, border boxes, keyframe id and video id in database
         with CottontailDBClient('localhost', 1865) as client:
@@ -41,7 +42,9 @@ def store_classe_sketch_from_box(image, video_id, keyframe_id, counter):
                 'video_id': Literal(stringData=str(video_id)),
                 'keyframe_id': Literal(intData=int(keyframe_id)), 
                 'sketch_vector': float_vector(box),
-                'object': Literal(stringData = object)}
+                'object': Literal(stringData = object),
+                'start_time': Literal(floatData = float(start_time.iloc[keyframe_nr]["starttime"]))
+                }
             client.insert('tal_db', 'object_sketch', entry)
     
     return counter
