@@ -26,7 +26,7 @@ def cleanhtml(raw_html):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[:5]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[5:20]
 
     for videonr in tqdm(video_filelist):
         #f = open(f"D:\\Video Retrieval System\\info\\{videonr}.json")
