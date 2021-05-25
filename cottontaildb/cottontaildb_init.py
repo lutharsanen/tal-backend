@@ -14,7 +14,7 @@ with CottontailDBClient('localhost', 1865) as client:
         column_def('sketch_vector', Type.FLOAT_VEC, nullable=True, length=4),
         column_def('color_vector', Type.FLOAT_VEC, nullable=True, length=3),
         column_def('object', Type.STRING, nullable=False),
-        column_def('start_time', Type.INTEGER, nullable=False)
+        column_def('start_time', Type.FLOAT, nullable=False)
     ]
     # Create entity color sketch
     client.create_entity('tal_db', 'sketch', sketch_columns)
@@ -25,7 +25,7 @@ with CottontailDBClient('localhost', 1865) as client:
         column_def('video_id', Type.STRING, nullable=False),
         column_def('keyframe_id', Type.INTEGER, nullable=False),
         column_def('dominant_color_vector', Type.FLOAT_VEC, nullable=True, length=36),
-        column_def('start_time', Type.INTEGER, nullable=False)
+        column_def('start_time', Type.FLOAT, nullable=False)
 
     ]
     # Create entity feature vector
@@ -37,7 +37,7 @@ with CottontailDBClient('localhost', 1865) as client:
         column_def('video_id', Type.STRING, nullable=False),
         column_def('keyframe_id', Type.INTEGER, nullable=False),
         column_def('tesseract_text', Type.STRING, nullable=True),
-        column_def('start_time', Type.INTEGER, nullable=False),
+        column_def('start_time', Type.FLOAT, nullable=False),
         column_def('image_capture_text', Type.STRING, nullable=True)
     ]
     # Create entity feature vector
@@ -54,6 +54,7 @@ with CottontailDBClient('localhost', 1865) as client:
     # Define entity video columns
     video_columns = [
         column_def('video_id', Type.STRING, nullable=False),
+        column_def('vimeo_id', Type.STRING),
         column_def('title', Type.STRING, nullable=False),
         column_def('description', Type.STRING, nullable=False)
     ]
@@ -63,7 +64,7 @@ with CottontailDBClient('localhost', 1865) as client:
     # Define entity video columns
     audio_columns = [
         column_def('video_id', Type.STRING, nullable=False),
-        column_def('audio_transcription', Type.STRING, nullable=False)
+        column_def('audio_transcription', Type.STRING, nullable=True)
     ]
     # Create entity feature vector
     client.create_entity('tal_db', 'transcription', audio_columns)

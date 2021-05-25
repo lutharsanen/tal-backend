@@ -26,7 +26,7 @@ def cleanhtml(raw_html):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[86:]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[:10]
     
     for videonr in tqdm(video_filelist):
         #f = open(f"D:\\Video Retrieval System\\info\\{videonr}.json")
@@ -71,7 +71,7 @@ def run(path):
                                 'video_id': Literal(stringData = videonr),
                                 'keyframe_id': Literal(intData=int(keyframe_id)),
                                 'tesseract_text': Literal(stringData = text),
-                                'start_time':Literal(intData = int(start_time.iloc[keyframe_nr]["starttime"])),
+                                'start_time':Literal(floatData = float(start_time.iloc[keyframe_nr]["starttime"])),
                                 'image_capture_text':Literal(stringData = capture_text)
                             }
                             client.insert('tal_db', 'text_search', entry)
@@ -87,4 +87,5 @@ def run(path):
 #path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
 #path = "/media/lkunam/Elements/Video Retrieval System"
 path = "Y:/TAL"
+
 run(path)
