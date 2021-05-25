@@ -1,6 +1,7 @@
 from nltk.stem import PorterStemmer
 from google.protobuf.json_format import MessageToDict
 import pandas as pd
+from math import sqrt
 
 ################### helper-function ################
 
@@ -75,3 +76,32 @@ def cottontail_object_number_search(result,count):
     result = df_new[df_new["count"] >= count].sort_values(by=['count'],ascending=False)
 
     return result
+
+def closest_color(rgb):
+    COLORS = (
+    (0,0,0), #black 
+    (255,255,255), #white
+    (255,0,0), #red
+    (0,255,0), #lime
+    (0,0,255), #blue
+    (255,255,0), #yellow
+    (0,255,255), #cyan
+    (255,0,255), #magenta
+    (192,192,192), #silver
+    (128,128,128), #gray
+    (128,0,0), #maroon
+    (128,128,0), #olive
+    (0,128,0), #green
+    (128,0,128), #purple
+    (0,128,128), #teal
+    (0,0,128), #navy
+    (255,165,0) #orange
+)
+
+    r, g, b = rgb[0],rgb[1],rgb[2]
+    color_diffs = []
+    for color in COLORS:
+        cr, cg, cb = color
+        color_diff = sqrt(abs(r - cr)**2 + abs(g - cg)**2 + abs(b - cb)**2)
+        color_diffs.append((color_diff, color))
+    return list(min(color_diffs)[1])

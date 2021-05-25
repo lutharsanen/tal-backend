@@ -6,9 +6,10 @@ from fastapi.responses import RedirectResponse
 
 import schemas
 
-from helper import stemming_algo, cottontail_to_df, cottontail_where_to_df, cottontail_object_number_search
+from helper import stemming_algo, cottontail_to_df, cottontail_where_to_df, cottontail_object_number_search, closest_color
 import numpy as np
 import pandas as pd
+from math import sqrt
 
 from cottontaildb.cottontaildb_client import CottontailDBClient, Type, Literal, column_def, float_vector
 from google.protobuf.json_format import MessageToDict
@@ -161,7 +162,10 @@ def get_text(text: str):
 
 @app.post("/api/searchByColorSketch")
 def get_sketch(request: schemas.ColorSketchInput):
-    color_query = [request.color.red,request.color.green,request.color.blue]
+    #color_query = [request.color.red,request.color.green,request.color.blue]
+    color_list = closest_color([request.color.red, request.color.green, request.color.blue])
+    color_query = [item for t in color_list for item in t]
+    
     # (x1,y1) is lower left and (x2,y2) is upper right
     sketch_query = [request.box.x1,request.box.y1,request.box.x2,request.box.y2]
     object_query = request.object
@@ -243,6 +247,7 @@ def get_sketch(request: schemas.ThreeObjectSketchInput):
 
 @app.post("/api/searchByColor") 
 def get_sketch(request: schemas.ColorInput):
+    '''
     color_query = [
         request.c0.red,
         request.c0.green,
@@ -281,6 +286,24 @@ def get_sketch(request: schemas.ColorInput):
         request.c11.green,
         request.c11.blue,
         ]
+    '''
+
+    color_list = []
+    c0 = closest_color([request.c0.red, request.c0.green, request.c0.blue])
+    c1 = closest_color([request.c1.red, request.c1.green, request.c1.blue])
+    c2 = closest_color([request.c2.red, request.c2.green, request.c2.blue])
+    c3 = closest_color([request.c3.red, request.c3.green, request.c3.blue])
+    c4 = closest_color([request.c4.red, request.c4.green, request.c4.blue])
+    c5 = closest_color([request.c5.red, request.c5.green, request.c5.blue])
+    c6 = closest_color([request.c6.red, request.c6.green, request.c6.blue])
+    c7 = closest_color([request.c7.red, request.c7.green, request.c7.blue])
+    c8 = closest_color([request.c8.red, request.c8.green, request.c8.blue])
+    c9 = closest_color([request.c9.red, request.c9.green, request.c9.blue])
+    c10 = closest_color([request.c10.red, request.c10.green, request.c10.blue])
+    c11 = closest_color([request.c11.red, request.c11.green, request.c11.blue])
+
+    color_list.extend([c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11])
+    color_query = [item for t in color_list for item in t]
 
     with CottontailDBClient('localhost', 1865) as client:
         result = client.knn(color_query, "tal_db","color_image","dominant_color_vector", ["video_id", "keyframe_id", "start_time","distance"],500)
