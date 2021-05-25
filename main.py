@@ -137,6 +137,26 @@ def get_text(text: str):
             response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["floatData"]
     return {"results": list(response.values())}
 
+@app.get("/api/searchByAudio")
+def get_text(text: str):
+    text = stemming_algo(text)
+
+    with CottontailDBClient('localhost', 1865) as client:
+        result = client.select_where("tal_db","transcription", ["video_id", "audio_transcription"], "audio_transcription", [f"%{text}%"])
+        result = MessageToDict(list(result)[0])
+        response = {}
+        columns = result["columns"]
+        if 'tuples' in result.keys():
+            results = result["tuples"]
+            print(results)
+        else:
+            return {"results": []}
+        for i, tuple in enumerate(results):
+            response[f"{i}"] = dict()
+            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+    return {"results": list(response.values())}
+
 ################ Cottonttail API-Calls ############################
 
 @app.post("/api/searchByColorSketch")
