@@ -163,9 +163,8 @@ def get_text(text: str):
 @app.post("/api/searchByColorSketch")
 def get_sketch(request: schemas.ColorSketchInput):
     #color_query = [request.color.red,request.color.green,request.color.blue]
-    color_list = closest_color([request.color.red, request.color.green, request.color.blue])
-    color_query = [item for t in color_list for item in t]
-    
+    color_query = closest_color([request.color.red, request.color.green, request.color.blue])
+
     # (x1,y1) is lower left and (x2,y2) is upper right
     sketch_query = [request.box.x1,request.box.y1,request.box.x2,request.box.y2]
     object_query = request.object
