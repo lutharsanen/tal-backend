@@ -23,7 +23,7 @@ def cottontail_to_df(result,vector_name):
         response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["intData"]
         response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
         response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["intData"]
-        response[f"data_{i}"][columns[4]["name"]] = tuple["data"][4]["intData"]
+        response[f"data_{i}"][columns[4]["name"]] = tuple["data"][4]["floatData"]
 
     df = pd.DataFrame.from_dict(response)
 
@@ -42,7 +42,7 @@ def cottontail_where_to_df(result,vector_name):
         response[f"data_{i}"][vector_name] = tuple["data"][1]["doubleData"]
         response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
         response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["stringData"]
-        response[f"data_{i}"][columns[4]["name"]] = tuple["data"][4]["intData"]
+        response[f"data_{i}"][columns[4]["name"]] = tuple["data"][4]["floatData"]
         response[f"data_{i}"][columns[5]["name"]] = tuple["data"][5]["intData"]
 
     df = pd.DataFrame.from_dict(response)
@@ -62,7 +62,7 @@ def cottontail_object_number_search(result,count):
         response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["intData"] 
         response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
         response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
-        response[f"{i}"][columns[4]["name"]] = tuple["data"][4]["intData"] 
+        response[f"{i}"][columns[4]["name"]] = tuple["data"][4]["floatData"] 
 
 
     df = pd.DataFrame.from_dict(response)
