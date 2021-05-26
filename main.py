@@ -135,7 +135,7 @@ def get_text(text: str):
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
             response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
-            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["floatData"]
+            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"]
     return {"results": list(response.values())}
 
 @app.get("/api/searchByAudio")
