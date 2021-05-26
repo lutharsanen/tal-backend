@@ -14,7 +14,7 @@ def cleanhtml(raw_html):
     return cleantext
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[100:]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[200:]
 
     for videonr in tqdm(video_filelist):
         try:
@@ -39,6 +39,12 @@ def run(path):
                     client.insert('tal_db', 'video_tags', entry)
                             
         except OSError:
+            continue
+        except UnicodeDecodeError:
+            continue
+        except UnicodeEncodeError:
+            continue
+        except UnicodeError:
             continue
 
 path = "Y:/TAL"

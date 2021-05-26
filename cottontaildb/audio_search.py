@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/videos"))[:10]
+    video_filelist = sorted(get_all_filesname(f"{path}/videos"))[100:]
     
     for videonr in tqdm(video_filelist):
         try:

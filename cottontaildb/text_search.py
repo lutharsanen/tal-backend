@@ -26,32 +26,11 @@ def cleanhtml(raw_html):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[20:50]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[42:50]
 
     for videonr in tqdm(video_filelist):
         #f = open(f"D:\\Video Retrieval System\\info\\{videonr}.json")
         try:
-            '''
-            f = open(f"{path}/info/{videonr}.json")
-            data = json.load(f)
-            
-            with CottontailDBClient('localhost', 1865) as client:
-                  
-                entry = {
-                    'video_id': Literal(stringData = videonr),
-                    'vimeo_id': Literal(stringData = data["vimeoId"].lower()),
-                    'title': Literal(stringData = data["title"].lower()),
-                    'description': Literal(stringData = cleanhtml(data["description"]).lower())
-                }
-                client.insert('tal_db', 'video_search', entry)
-
-                for tag in data["tags"]:
-                    entry = {
-                        'video_id': Literal(stringData = videonr),
-                        'tags':Literal(stringData = tag.lower())            
-                    }
-                    client.insert('tal_db', 'video_tags', entry)
-                '''
             with CottontailDBClient('localhost', 1865) as client:    
                 f = open(f"{path}/msb/{videonr}.tsv")
                 start_time = pd.read_csv(f, delimiter="\t")
