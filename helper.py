@@ -43,8 +43,8 @@ def cottontail_where_to_df(result,vector_name):
         response[f"data_{i}"][vector_name] = tuple["data"][1]["doubleData"]
         response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
         response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["stringData"]
-        response[f"data_{i}"][columns[4]["name"]] = tuple["data"][4]["floatData"]
-        response[f"data_{i}"][columns[5]["name"]] = tuple["data"][5]["intData"]
+        response[f"data_{i}"][columns[4]["name"]] = tuple["data"][4]["intData"]
+        response[f"data_{i}"][columns[5]["name"]] = tuple["data"][5]["floatData"]
 
     df = pd.DataFrame.from_dict(response)
 
