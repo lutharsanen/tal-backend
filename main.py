@@ -177,9 +177,9 @@ def get_sketch(request: schemas.ColorSketchInput):
         df_color = cottontail_to_df(result_color, "color_vector")
         print(df_color)
         merged_df = pd.merge(df_sketch,df_color,on=['box_id','video_id',"keyframe_id","start_time"])
-        merged_df["distance"] = 0.5 * merged_df["color_vector"] + 0.5 * merged_df["sketch_vector"]
+        merged_df["distance"] = 0.1 * merged_df["color_vector"] + 0.9 * merged_df["sketch_vector"]
         merged_df = merged_df.drop(['color_vector', 'sketch_vector'], axis=1).sort_values(by=['distance'])
-        response = merged_df.drop_duplicates(subset=['box_id']).head(10).to_dict(orient="records")
+        response = merged_df.drop_duplicates(subset=['box_id']).head(200).to_dict(orient="records")
         print(response)
 
     return {"results": response}
@@ -204,7 +204,7 @@ def get_sketch(request: schemas.DoubleObjectSketchInput):
         print(merged_df)
         merged_df["distance"] = 0.5 * merged_df["sketch_vector_x"] + 0.5 * merged_df["sketch_vector_y"]
         merged_df = merged_df.drop(['sketch_vector_x','sketch_vector_y','object_x','object_y','box_id_x','box_id_y'], axis=1).sort_values(by=['distance'])
-        response = merged_df.head(10).to_dict(orient="records")
+        response = merged_df.head(500).to_dict(orient="records")
         print(response)
 
     return {"results": response}
@@ -239,7 +239,7 @@ def get_sketch(request: schemas.ThreeObjectSketchInput):
         print(merged_df)
         merged_df["distance"] = 1/3 * merged_df["sketch_vector_x"] + 1/3 * merged_df["sketch_vector_y"] + 1/3 * merged_df["sketch_vector"]
         merged_df = merged_df.drop(['sketch_vector_x','sketch_vector_y','sketch_vector','box_id_x','box_id_y','box_id'], axis=1).sort_values(by=['distance'])
-        response = merged_df.head(10).to_dict(orient="records")
+        response = merged_df.head(500).to_dict(orient="records")
         print(response)
 
     return {"results": response}
