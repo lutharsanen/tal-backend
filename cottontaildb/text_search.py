@@ -26,15 +26,17 @@ def cleanhtml(raw_html):
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[5:20]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered"))[20:50]
 
     for videonr in tqdm(video_filelist):
         #f = open(f"D:\\Video Retrieval System\\info\\{videonr}.json")
         try:
+            '''
             f = open(f"{path}/info/{videonr}.json")
             data = json.load(f)
-
-            with CottontailDBClient('localhost', 1865) as client:    
+            
+            with CottontailDBClient('localhost', 1865) as client:
+                  
                 entry = {
                     'video_id': Literal(stringData = videonr),
                     'vimeo_id': Literal(stringData = data["vimeoId"].lower()),
@@ -49,9 +51,11 @@ def run(path):
                         'tags':Literal(stringData = tag.lower())            
                     }
                     client.insert('tal_db', 'video_tags', entry)
+                '''
+            with CottontailDBClient('localhost', 1865) as client:    
                 f = open(f"{path}/msb/{videonr}.tsv")
                 start_time = pd.read_csv(f, delimiter="\t")
-
+                    
                 for filename in tqdm(get_all_filesname(f"{path}/keyframes_filtered/{videonr}")):
                     if filename != "Thumbs.db" and filename!= ".DAV":
                         keyframe_id = get_keyframe_id(filename, videonr,path)
@@ -75,6 +79,7 @@ def run(path):
                                 'image_capture_text':Literal(stringData = capture_text)
                             }
                             client.insert('tal_db', 'text_search', entry)
+                            
         except OSError:
             continue
         except UnicodeDecodeError:
