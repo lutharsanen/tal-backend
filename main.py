@@ -305,7 +305,7 @@ def get_sketch(request: schemas.ColorInput):
     color_query = [item for t in color_list for item in t]
 
     with CottontailDBClient('localhost', 1865) as client:
-        result = client.knn(color_query, "tal_db","color_image","dominant_color_vector", ["video_id", "keyframe_id", "start_time","distance"],500)
+        result = client.knn(color_query, "tal_db","color_image","dominant_color_vector", ["video_id", "keyframe_id", "start_time","distance"],200)
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
@@ -329,7 +329,7 @@ def get_sketch(request: schemas.ObjectSketchInput):
     
     with CottontailDBClient('localhost', 1865) as client:
         
-        result = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["video_id", "keyframe_id", "distance", "object"],[object_query],200)
+        result = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["video_id", "keyframe_id", "distance", "start_time", "object"],[object_query],200)
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
@@ -342,7 +342,9 @@ def get_sketch(request: schemas.ObjectSketchInput):
             response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
             response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["doubleData"]
             response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
-            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"] 
+            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["intData"]
+            response[f"{i}"][columns[4]["name"]] = tuple["data"][4]["floatData"]
+
             
     return {"results": list(response.values())}
 
