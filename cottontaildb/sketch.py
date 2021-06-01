@@ -103,7 +103,7 @@ def store_color_sketch_from_masks(image, video_id, keyframe_id, counter,start_ti
 
 
 def run(path):
-    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered_resized"))[:100]
+    video_filelist = sorted(get_all_filesname(f"{path}/keyframes_filtered_resized"))[100:]
     failed = {}
     counter = 9714
     for videonr in tqdm(video_filelist):
