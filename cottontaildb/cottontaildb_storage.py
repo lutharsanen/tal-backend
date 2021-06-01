@@ -1,11 +1,8 @@
-from color_sketch import run as color_sketch_run
-from object_sketch import run as object_sketch_run
+from sketch import run as object_sketch_run
 from color_image import run as color_image_run
 
 path = "/run/user/1000/gvfs/dav:host=tal.diskstation.me,port=5006,ssl=true"
 
-color_sketch_run(path)
-print("color_sketch done")
 object_sketch_run(path)
 print("object_sketch done")
 color_image_run(path)
