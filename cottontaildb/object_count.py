@@ -6,21 +6,37 @@ from tqdm import tqdm
 
 with CottontailDBClient('localhost', 1865) as client:
 
-    # Define entity sketch columns
-    count_columns = [
-        column_def('video_id', Type.STRING, nullable=False),
-        column_def('keyframe_id', Type.INTEGER, nullable=False),
-        column_def('object', Type.STRING, nullable=False),
-        column_def('count', Type.INTEGER, nullable=False),
-        column_def('start_time', Type.FLOAT, nullable=False)
-    ]
-    # Create entity color sketch
-    client.create_entity('tal_db', 'object_count', count_columns)
-
-    result = client.select('tal_db', 'sketch', ['keyframe_id', 'video_id','box_id','object','start_time'])
-    result = MessageToDict(list(result)[0])
+    
+    sketch_details = client.get_entity_details("tal_db", "sketch")
+    row_iterations = sketch_details["rows"]//100000
+    mod = sketch_details["rows"] % 100000
 
     response = {}
+
+    for i in range(row_iterations):
+        start_point = i*100000
+        end_point = (i+1)*100000 -1
+
+        result = client.limited_select('tal_db', 'sketch', ['keyframe_id', 'video_id','box_id','object','start_time'], start_point, end_point)
+        result = MessageToDict(list(result)[0])
+
+        columns = result["columns"]
+        results = result["tuples"]
+
+        for i, tuple in enumerate(results):
+            response[f"{i}"] = dict()
+            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["intData"]
+            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+            response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
+            response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["stringData"]
+            response[f"{i}"][columns[4]["name"]] = tuple["data"][4]["floatData"]
+
+    last_start = sketch_details["rows"]//100000*100000
+    last_end = sketch_details["rows"]//100000*100000 + mod
+
+    result = client.limited_select('tal_db', 'sketch', ['keyframe_id', 'video_id','box_id','object','start_time'], last_start, last_end)
+    result = MessageToDict(list(result)[0])
+
     columns = result["columns"]
     results = result["tuples"]
 
@@ -49,6 +65,6 @@ with CottontailDBClient('localhost', 1865) as client:
                 'keyframe_id': Literal(intData=int(row[1]["keyframe_id"])),
                 'object': Literal(stringData = row[1]["object"]),
                 'count': Literal(intData = row[1]["count"]),
-                'start_time':Literal(floatData = float(row[1]["starttime"])),
+                'start_time':Literal(floatData = float(row[1]["start_time"])),
             }
             client.insert('tal_db', 'object_count', entry)

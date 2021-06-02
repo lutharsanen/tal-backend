@@ -410,6 +410,27 @@ class CottontailDBClient:
         result = self._dql.Query(query_message)
         return result 
 
+    def limited_select(self, schema, entity, column_names,start, end):
+        # Base
+        schema_name = SchemaName(name = schema)
+        entity_name = EntityName(schema=schema_name, name=entity)
+        # Projection
+        projection_elements = []
+        for column_name in column_names:
+            column = ColumnName(entity = entity_name, name = column_name)
+            projection_operation = Projection.ProjectionOperation.SELECT_DISTINCT
+            projection_element = Projection.ProjectionElement(column = column)
+            projection_elements.append(projection_element)
+        projection = Projection(op = projection_operation, columns  = projection_elements)
+        # From
+        from_kwarg = {'from': From(scan=Scan(entity=entity_name, start = start, end = end))}
+        # Query
+        query = Query(**from_kwarg, projection = projection, limit = (end-start))
+        # Query Message
+        query_message = QueryMessage(txId=self._tid, query = query)
+        result = self._dql.Query(query_message)
+        return result 
+
     def select_where(self, schema, entity, column_names, searched_column, search_words):
         # Base
         schema_name = SchemaName(name = schema)
