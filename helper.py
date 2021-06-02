@@ -50,6 +50,23 @@ def cottontail_where_to_df(result,vector_name):
 
     return df.T
 
+def cottontail_text_where_to_df(result, text_name):
+    test = MessageToDict(list(result)[0])
+    response = {}
+
+    columns = test["columns"]
+    results = test["tuples"]
+    for i, tuple in enumerate(results):
+        response[f"data_{i}"] = dict()
+        response[f"data_{i}"][text_name] = tuple["data"][0]["stringData"]
+        response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+        response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
+        response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["floatData"]
+
+    df = pd.DataFrame.from_dict(response)
+
+    return df.T    
+
 
 def cottontail_object_number_search(result,count):
     result = MessageToDict(list(result)[0])

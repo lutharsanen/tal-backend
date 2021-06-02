@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse
 
 import schemas
 
-from helper import stemming_algo, cottontail_to_df, cottontail_where_to_df, cottontail_object_number_search, closest_color
+from helper import stemming_algo, cottontail_to_df, cottontail_where_to_df, cottontail_text_where_to_df, cottontail_object_number_search, closest_color
 import numpy as np
 import pandas as pd
 from math import sqrt
@@ -39,24 +39,45 @@ def test_api(request: schemas.Test):
 
 @app.get("/api/searchByVideoText")
 def get_text(text: str):
-    text = stemming_algo(text)
+    initial_text_list = []
+    text_list = []
+    initial_text_list = list(text.split(" "))
+    for element in initial_text_list:
+        element = stemming_algo(element)
+        text_list.append(element)
+    if len(text_list) == 1:    
 
-    with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","text_search", ["video_id", "tesseract_text", "keyframe_id"], "tesseract_text", [f"%{text}%"])
-        result = MessageToDict(list(result)[0])
-        response = {}
-        columns = result["columns"]
-        if 'tuples' in result.keys():
-            results = result["tuples"]
-        else:
-            return {"results": []}
-        for i, tuple in enumerate(results):
-            response[f"{i}"] = dict()
-            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
-            response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]  
-    return {"results": list(response.values())}
-
+        with CottontailDBClient('localhost', 1865) as client:
+            result = client.select_where("tal_db","text_search", ["video_id", "keyframe_id", "start_time", "tesseract_text"], "tesseract_text", [f"%{text}%"])
+            result = MessageToDict(list(result)[0])
+            response = {}
+            columns = result["columns"]
+            if 'tuples' in result.keys():
+                results = result["tuples"]
+            else:
+                return {"results": []}
+            for i, tuple in enumerate(results):
+                response[f"{i}"] = dict()
+                #response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+                response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+                response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
+                response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["floatData"]  
+        return {"results": list(response.values())}
+        
+    elif len(text_list) == 2:
+        with CottontailDBClient('localhost', 1865) as client:
+            result1_text = client.select_where("tal_db","text_search", ["video_id", "keyframe_id", "start_time", "tesseract_text"], "tesseract_text", [f"%{text_list[0]}%"])
+            df_text1 = cottontail_text_where_to_df(result1_text, "tesseract_text")
+            print(df_text1)
+            result2_text = client.select_where("tal_db","text_search", ["video_id", "keyframe_id", "start_time", "tesseract_text"], "tesseract_text", [f"%{text_list[1]}%"])
+            df_text2 = cottontail_text_where_to_df(result2_text, "tesseract_text")
+            print(df_text2)
+            merged_df = pd.merge(df_text1,df_text2,on=['video_id',"keyframe_id","start_time"])
+            print(merged_df)
+            merged_df = merged_df.drop(['tesseract_text_x', 'tesseract_text_y'], axis=1).sort_values(by=['video_id'])
+            response = merged_df.head(20000000).to_dict(orient="records")
+            print(response)
+        return {"results": response}
 
 @app.get("/api/searchByDescription")
 def get_text(text: str):
@@ -162,7 +183,6 @@ def get_text(text: str):
 
 @app.post("/api/searchByColorSketch")
 def get_sketch(request: schemas.ColorSketchInput):
-    #color_query = [request.color.red,request.color.green,request.color.blue]
     color_query = closest_color([request.color.red, request.color.green, request.color.blue])
 
     # (x1,y1) is lower left and (x2,y2) is upper right
@@ -246,47 +266,6 @@ def get_sketch(request: schemas.ThreeObjectSketchInput):
 
 @app.post("/api/searchByColor") 
 def get_sketch(request: schemas.ColorInput):
-    '''
-    color_query = [
-        request.c0.red,
-        request.c0.green,
-        request.c0.blue,
-        request.c1.red,
-        request.c1.green,
-        request.c1.blue,
-        request.c2.red,
-        request.c2.green,
-        request.c2.blue,
-        request.c3.red,
-        request.c3.green,
-        request.c3.blue,
-        request.c4.red,
-        request.c4.green,
-        request.c4.blue,
-        request.c5.red,
-        request.c5.green,
-        request.c5.blue,
-        request.c6.red,
-        request.c6.green,
-        request.c6.blue,
-        request.c7.red,
-        request.c7.green,
-        request.c7.blue,
-        request.c8.red,
-        request.c8.green,
-        request.c8.blue,
-        request.c9.red,
-        request.c9.green,
-        request.c9.blue,
-        request.c10.red,
-        request.c10.green,
-        request.c10.blue,
-        request.c11.red,
-        request.c11.green,
-        request.c11.blue,
-        ]
-    '''
-
     color_list = []
     c0 = closest_color([request.c0.red, request.c0.green, request.c0.blue])
     c1 = closest_color([request.c1.red, request.c1.green, request.c1.blue])
