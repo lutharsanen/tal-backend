@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse
 
 import schemas
 
-from helper import stemming_algo, cottontail_to_df, cottontail_where_to_df, cottontail_text_where_to_df, cottontail_object_number_search, closest_color
+from helper import stemming_algo, cottontail_to_df, cottontail_where_to_df, cottontail_text_where_to_df, cottontail_simple_text_where_to_df, cottontail_object_number_search, closest_color
 import numpy as np
 import pandas as pd
 from math import sqrt
@@ -49,7 +49,7 @@ def get_text(text: str):
     if len(text_list) == 1 or len(text_list) > 3:    
 
         with CottontailDBClient('localhost', 1865) as client:
-            result = client.select_where("tal_db","text_search", ["video_id", "keyframe_id", "start_time", "tesseract_text"], "tesseract_text", [f"%{text}%"])
+            result = client.select_where("tal_db","text_search", ["video_id", "keyframe_id", "start_time", "tesseract_text"], "tesseract_text", [f"%{text_list[0]}%"])
             result = MessageToDict(list(result)[0])
             response = {}
             columns = result["columns"]
@@ -101,61 +101,178 @@ def get_text(text: str):
 
 @app.get("/api/searchByDescription")
 def get_text(text: str):
-    text = stemming_algo(text)
+    initial_text_list = []
+    text_list = []
+    initial_text_list = list(text.split(" "))
+    for element in initial_text_list:
+        element = stemming_algo(element)
+        text_list.append(element)
 
-    with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","video_search", ["video_id","description"], "description", [f"%{text}%"])
-        result = MessageToDict(list(result)[0])
-        response = {}
-        columns = result["columns"]
-        if 'tuples' in result.keys():
-            results = result["tuples"]
-        else:
-            return {"results": []}
-        for i, tuple in enumerate(results):
-            response[f"{i}"] = dict()
-            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": list(response.values())}
-
+    if len(text_list) == 1 or len(text_list) > 3:
+        with CottontailDBClient('localhost', 1865) as client:
+            result = client.select_where("tal_db","video_search", ["video_id","description"], "description", [f"%{text_list[0]}%"])
+            result = MessageToDict(list(result)[0])
+            response = {}
+            columns = result["columns"]
+            if 'tuples' in result.keys():
+                results = result["tuples"]
+            else:
+                return {"results": []}
+            for i, tuple in enumerate(results):
+                response[f"{i}"] = dict()
+                response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+                response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+        return {"results": list(response.values())}
+    
+    elif len(text_list) == 2:
+        with CottontailDBClient('localhost', 1865) as client:
+            result1_text = client.select_where("tal_db","video_search", ["video_id","description"], "description", [f"%{text_list[0]}%"])
+            df_text1 = cottontail_simple_text_where_to_df(result1_text, "description")
+            print(df_text1)
+            result2_text = client.select_where("tal_db","video_search", ["video_id","description"], "description", [f"%{text_list[1]}%"])
+            df_text2 = cottontail_simple_text_where_to_df(result2_text, "description")
+            print(df_text2)
+            merged_df = pd.merge(df_text1,df_text2,on=['video_id'])
+            print(merged_df)
+            merged_df = merged_df.drop(['description_x', 'description_y'], axis=1).sort_values(by=['video_id'])
+            response = merged_df.head(20000000).to_dict(orient="records")
+            print(response)
+        return {"results": response}
+    
+    elif len(text_list) == 3:
+        with CottontailDBClient('localhost', 1865) as client:
+            result1_text = client.select_where("tal_db","video_search", ["video_id","description"], "description", [f"%{text_list[0]}%"])
+            df_text1 = cottontail_simple_text_where_to_df(result1_text, "description")
+            print(df_text1)
+            result2_text = client.select_where("tal_db","video_search", ["video_id","description"], "description", [f"%{text_list[1]}%"])
+            df_text2 = cottontail_simple_text_where_to_df(result2_text, "description")
+            print(df_text2)
+            result3_text = client.select_where("tal_db","video_search", ["video_id","description"], "description", [f"%{text_list[2]}%"])
+            df_text3 = cottontail_simple_text_where_to_df(result3_text, "description")
+            print(df_text3)
+            merged_df = df_text1.merge(df_text2,on=['video_id']).merge(df_text3,on=['video_id'])
+            print(merged_df)
+            merged_df = merged_df.drop(['description_x', 'description_y'], axis=1).sort_values(by=['video_id'])
+            response = merged_df.head(20000000).to_dict(orient="records")
+            print(response)
+        return {"results": response}
 
 @app.get("/api/searchByTitle")
 def get_text(text: str):
-    text = stemming_algo(text)
+    initial_text_list = []
+    text_list = []
+    initial_text_list = list(text.split(" "))
+    for element in initial_text_list:
+        element = stemming_algo(element)
+        text_list.append(element)
+    
+    if len(text_list) == 1 or len(text_list) > 3:
+        with CottontailDBClient('localhost', 1865) as client:
+            result = client.select_where("tal_db","video_search", ["video_id","title"], "title", [f"%{text_list[0]}%"])
+            result = MessageToDict(list(result)[0])
+            response = {}
+            columns = result["columns"]
+            if 'tuples' in result.keys():
+                results = result["tuples"]
+            else:
+                return {"results": []}
+            for i, tuple in enumerate(results):
+                response[f"{i}"] = dict()
+                response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+                response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+        return {"results": list(response.values())}
+    
+    elif len(text_list) == 2:
+        with CottontailDBClient('localhost', 1865) as client:
+            result1_text = client.select_where("tal_db","video_search", ["video_id","title"], "title", [f"%{text_list[0]}%"])
+            df_text1 = cottontail_simple_text_where_to_df(result1_text, "title")
+            print(df_text1)
+            result2_text = client.select_where("tal_db","video_search", ["video_id","title"], "title", [f"%{text_list[1]}%"])
+            df_text2 = cottontail_simple_text_where_to_df(result2_text, "title")
+            print(df_text2)
+            merged_df = pd.merge(df_text1,df_text2,on=['video_id'])
+            print(merged_df)
+            merged_df = merged_df.drop(['title_x', 'title_y'], axis=1).sort_values(by=['video_id'])
+            response = merged_df.head(20000000).to_dict(orient="records")
+            print(response)
+        return {"results": response}
+    
+    elif len(text_list) == 3:
+        with CottontailDBClient('localhost', 1865) as client:
+            result1_text = client.select_where("tal_db","video_search", ["video_id","title"], "title", [f"%{text_list[0]}%"])
+            df_text1 = cottontail_simple_text_where_to_df(result1_text, "title")
+            print(df_text1)
+            result2_text = client.select_where("tal_db","video_search", ["video_id","title"], "title", [f"%{text_list[1]}%"])
+            df_text2 = cottontail_simple_text_where_to_df(result2_text, "title")
+            print(df_text2)
+            result3_text = client.select_where("tal_db","video_search", ["video_id","title"], "title", [f"%{text_list[2]}%"])
+            df_text3 = cottontail_simple_text_where_to_df(result3_text, "title")
+            print(df_text3)
+            merged_df = df_text1.merge(df_text2,on=['video_id']).merge(df_text3,on=['video_id'])
+            print(merged_df)
+            merged_df = merged_df.drop(['title_x', 'title_y'], axis=1).sort_values(by=['video_id'])
+            response = merged_df.head(20000000).to_dict(orient="records")
+            print(response)
+        return {"results": response}
 
-    with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","video_search", ["video_id","title"], "title", [f"%{text}%"])
-        result = MessageToDict(list(result)[0])
-        response = {}
-        columns = result["columns"]
-        if 'tuples' in result.keys():
-            results = result["tuples"]
-        else:
-            return {"results": []}
-        for i, tuple in enumerate(results):
-            response[f"{i}"] = dict()
-            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": list(response.values())}
 
 @app.get("/api/searchByTag")
 def get_text(text: str):
-    text = stemming_algo(text)
+    initial_text_list = []
+    text_list = []
+    initial_text_list = list(text.split(" "))
+    for element in initial_text_list:
+        element = stemming_algo(element)
+        text_list.append(element)
 
-    with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", [f"%{text}%"])
-        result = MessageToDict(list(result)[0])
-        response = {}
-        columns = result["columns"]
-        if 'tuples' in result.keys():
-            results = result["tuples"]
-        else:
-            return {"results": []}
-        for i, tuple in enumerate(results):
-            response[f"{i}"] = dict()
-            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
-    return {"results": list(response.values())}
+    if len(text_list) == 1 or len(text_list) > 3:
+        with CottontailDBClient('localhost', 1865) as client:
+            result = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", [f"%{text_list[0]}%"])
+            result = MessageToDict(list(result)[0])
+            response = {}
+            columns = result["columns"]
+            if 'tuples' in result.keys():
+                results = result["tuples"]
+            else:
+                return {"results": []}
+            for i, tuple in enumerate(results):
+                response[f"{i}"] = dict()
+                response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+                response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"] 
+        return {"results": list(response.values())}
+    
+    elif len(text_list) == 2:
+        with CottontailDBClient('localhost', 1865) as client:
+            result1_text = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", [f"%{text_list[0]}%"])
+            df_text1 = cottontail_simple_text_where_to_df(result1_text, "tags")
+            print(df_text1)
+            result2_text = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", [f"%{text_list[1]}%"])
+            df_text2 = cottontail_simple_text_where_to_df(result2_text, "tags")
+            print(df_text2)
+            merged_df = pd.merge(df_text1,df_text2,on=['video_id'])
+            print(merged_df)
+            merged_df = merged_df.drop(['tags_x', 'tags_y'], axis=1).sort_values(by=['video_id'])
+            response = merged_df.head(20000000).to_dict(orient="records")
+            print(response)
+        return {"results": response}
+    
+    elif len(text_list) == 3:
+        with CottontailDBClient('localhost', 1865) as client:
+            result1_text = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", [f"%{text_list[0]}%"])
+            df_text1 = cottontail_simple_text_where_to_df(result1_text, "tags")
+            print(df_text1)
+            result2_text = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", [f"%{text_list[1]}%"])
+            df_text2 = cottontail_simple_text_where_to_df(result2_text, "tags")
+            print(df_text2)
+            result3_text = client.select_where("tal_db","video_tags", ["video_id","tags"], "tags", [f"%{text_list[2]}%"])
+            df_text3 = cottontail_simple_text_where_to_df(result3_text, "tags")
+            print(df_text3)
+            merged_df = df_text1.merge(df_text2,on=['video_id']).merge(df_text3,on=['video_id'])
+            print(merged_df)
+            merged_df = merged_df.drop(['tags_x', 'tags_y'], axis=1).sort_values(by=['video_id'])
+            response = merged_df.head(20000000).to_dict(orient="records")
+            print(response)
+        return {"results": response}
 
 @app.get("/api/searchByImageCapture")
 def get_text(text: str):
@@ -220,23 +337,62 @@ def get_text(text: str):
 
 @app.get("/api/searchByAudio")
 def get_text(text: str):
-    text = stemming_algo(text)
+    initial_text_list = []
+    text_list = []
+    initial_text_list = list(text.split(" "))
+    for element in initial_text_list:
+        element = stemming_algo(element)
+        text_list.append(element)
 
-    with CottontailDBClient('localhost', 1865) as client:
-        result = client.select_where("tal_db","transcription", ["video_id", "audio_transcription"], "audio_transcription", [f"%{text}%"])
-        result = MessageToDict(list(result)[0])
-        response = {}
-        columns = result["columns"]
-        if 'tuples' in result.keys():
-            results = result["tuples"]
-            print(results)
-        else:
-            return {"results": []}
-        for i, tuple in enumerate(results):
-            response[f"{i}"] = dict()
-            response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
-            response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
-    return {"results": list(response.values())}
+    if len(text_list) == 1 or len(text_list) > 3:
+        with CottontailDBClient('localhost', 1865) as client:
+            result = client.select_where("tal_db","transcription", ["video_id", "audio_transcription"], "audio_transcription", [f"%{text}%"])
+            result = MessageToDict(list(result)[0])
+            response = {}
+            columns = result["columns"]
+            if 'tuples' in result.keys():
+                results = result["tuples"]
+                print(results)
+            else:
+                return {"results": []}
+            for i, tuple in enumerate(results):
+                response[f"{i}"] = dict()
+                response[f"{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+                response[f"{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+        return {"results": list(response.values())}
+    
+    elif len(text_list) == 2:
+        with CottontailDBClient('localhost', 1865) as client:
+            result1_text = client.select_where("tal_db","transcription", ["video_id","audio_transcription"], "audio_transcription", [f"%{text_list[0]}%"])
+            df_text1 = cottontail_simple_text_where_to_df(result1_text, "audio_transcription")
+            print(df_text1)
+            result2_text = client.select_where("tal_db","transcription", ["video_id","audio_transcription"], "audio_transcription", [f"%{text_list[1]}%"])
+            df_text2 = cottontail_simple_text_where_to_df(result2_text, "audio_transcription")
+            print(df_text2)
+            merged_df = pd.merge(df_text1,df_text2,on=['video_id'])
+            print(merged_df)
+            merged_df = merged_df.drop(['audio_transcription_x', 'audio_transcription'], axis=1).sort_values(by=['video_id'])
+            response = merged_df.head(20000000).to_dict(orient="records")
+            print(response)
+        return {"results": response}
+    
+    elif len(text_list) == 3:
+        with CottontailDBClient('localhost', 1865) as client:
+            result1_text = client.select_where("tal_db","transcription", ["video_id","audio_transcription"], "audio_transcription", [f"%{text_list[0]}%"])
+            df_text1 = cottontail_simple_text_where_to_df(result1_text, "audio_transcription")
+            print(df_text1)
+            result2_text = client.select_where("tal_db","transcription", ["video_id","audio_transcription"], "audio_transcription", [f"%{text_list[1]}%"])
+            df_text2 = cottontail_simple_text_where_to_df(result2_text, "audio_transcription")
+            print(df_text2)
+            result3_text = client.select_where("tal_db","transcription", ["video_id","audio_transcription"], "audio_transcription", [f"%{text_list[2]}%"])
+            df_text3 = cottontail_simple_text_where_to_df(result3_text, "audio_transcription")
+            print(df_text3)
+            merged_df = df_text1.merge(df_text2,on=['video_id']).merge(df_text3,on=['video_id'])
+            print(merged_df)
+            merged_df = merged_df.drop(['audio_transcription_x', 'audio_transcription_y'], axis=1).sort_values(by=['video_id'])
+            response = merged_df.head(20000000).to_dict(orient="records")
+            print(response)
+        return {"results": response}
 
 ################ Cottonttail API-Calls ############################
 

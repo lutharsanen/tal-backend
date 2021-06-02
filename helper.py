@@ -65,6 +65,21 @@ def cottontail_text_where_to_df(result, text_name):
 
     df = pd.DataFrame.from_dict(response)
 
+    return df.T
+
+def cottontail_simple_text_where_to_df(result, text_name):
+    test = MessageToDict(list(result)[0])
+    response = {}
+
+    columns = test["columns"]
+    results = test["tuples"]
+    for i, tuple in enumerate(results):
+        response[f"data_{i}"] = dict()
+        response[f"data_{i}"][text_name] = tuple["data"][0]["stringData"]
+        response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["stringData"]
+
+    df = pd.DataFrame.from_dict(response)
+
     return df.T    
 
 
