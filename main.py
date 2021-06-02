@@ -202,6 +202,8 @@ def get_text(text: str):
 
 @app.post("/api/searchByColorSketch")
 def get_sketch(request: schemas.ColorSketchInput):
+    knn = request.max_results
+
     color_query = closest_color([request.color.red, request.color.green, request.color.blue])
 
     # (x1,y1) is lower left and (x2,y2) is upper right
@@ -209,16 +211,16 @@ def get_sketch(request: schemas.ColorSketchInput):
     object_query = request.object
 
     with CottontailDBClient('localhost', 1865) as client:
-        result_sketch = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object_query],2000)
+        result_sketch = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object_query],knn)
         df_sketch = cottontail_where_to_df(result_sketch, "sketch_vector")
         print(df_sketch)
-        result_color = client.knn(color_query,"tal_db","sketch","color_vector", ["box_id","video_id", "keyframe_id","start_time", "distance"],2000)
+        result_color = client.knn(color_query,"tal_db","sketch","color_vector", ["box_id","video_id", "keyframe_id","start_time", "distance"],knn)
         df_color = cottontail_to_df(result_color, "color_vector")
         print(df_color)
         merged_df = pd.merge(df_sketch,df_color,on=['box_id','video_id',"keyframe_id","start_time"])
         merged_df["distance"] = 0.1 * merged_df["color_vector"] + 0.9 * merged_df["sketch_vector"]
         merged_df = merged_df.drop(['color_vector', 'sketch_vector'], axis=1).sort_values(by=['distance'])
-        response = merged_df.drop_duplicates(subset=['box_id']).head(200).to_dict(orient="records")
+        response = merged_df.drop_duplicates(subset=['box_id']).head(knn).to_dict(orient="records")
         print(response)
 
     return {"results": response}
@@ -226,6 +228,8 @@ def get_sketch(request: schemas.ColorSketchInput):
 @app.post("/api/searchByTwoObjects")
 def get_sketch(request: schemas.DoubleObjectSketchInput):
     # (x1,y1) is lower left and (x2,y2) is upper right
+    knn = request.max_results
+
     sketch1_query = [request.sketch1.x1,request.sketch1.y1,request.sketch1.x2,request.sketch1.y2]
     object1_query = request.object1
 
@@ -233,17 +237,17 @@ def get_sketch(request: schemas.DoubleObjectSketchInput):
     object2_query = request.object2
 
     with CottontailDBClient('localhost', 1865) as client:
-        result1_sketch = client.knn_where(sketch1_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object1_query],2000)
+        result1_sketch = client.knn_where(sketch1_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object1_query],knn)
         df_sketch1 = cottontail_where_to_df(result1_sketch, "sketch_vector")
         print(df_sketch1)
-        result2_sketch = client.knn_where(sketch2_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object2_query],2000)
+        result2_sketch = client.knn_where(sketch2_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object2_query],knn)
         df_sketch2 = cottontail_where_to_df(result2_sketch, "sketch_vector")
         print(df_sketch2)
         merged_df = pd.merge(df_sketch1,df_sketch2,on=['video_id',"keyframe_id","start_time"])
         print(merged_df)
         merged_df["distance"] = 0.5 * merged_df["sketch_vector_x"] + 0.5 * merged_df["sketch_vector_y"]
         merged_df = merged_df.drop(['sketch_vector_x','sketch_vector_y','object_x','object_y','box_id_x','box_id_y'], axis=1).sort_values(by=['distance'])
-        response = merged_df.head(500).to_dict(orient="records")
+        response = merged_df.head(knn).to_dict(orient="records")
         print(response)
 
     return {"results": response}
@@ -252,6 +256,8 @@ def get_sketch(request: schemas.DoubleObjectSketchInput):
 @app.post("/api/searchByThreeObjects")
 def get_sketch(request: schemas.ThreeObjectSketchInput):
     # (x1,y1) is lower left and (x2,y2) is upper right
+    knn = request.max_results
+
     sketch1_query = [request.sketch1.x1,request.sketch1.y1,request.sketch1.x2,request.sketch1.y2]
     object1_query = request.object1
 
@@ -263,14 +269,14 @@ def get_sketch(request: schemas.ThreeObjectSketchInput):
 
 
     with CottontailDBClient('localhost', 1865) as client:
-        result1_sketch = client.knn_where(sketch1_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object1_query],2000)
+        result1_sketch = client.knn_where(sketch1_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object1_query],knn)
         df_sketch1 = cottontail_where_to_df(result1_sketch, "sketch_vector")
         print(df_sketch1)
-        result2_sketch = client.knn_where(sketch2_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object2_query],2000)
+        result2_sketch = client.knn_where(sketch2_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object2_query],knn)
         df_sketch2 = cottontail_where_to_df(result2_sketch, "sketch_vector")
         print(df_sketch2)
 
-        result3_sketch = client.knn_where(sketch3_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object3_query],2000)
+        result3_sketch = client.knn_where(sketch3_query,"tal_db","sketch","sketch_vector","object", ["box_id","video_id", "keyframe_id","start_time","object", "distance"],[object3_query],knn)
         df_sketch3 = cottontail_where_to_df(result3_sketch, "sketch_vector")
         print(df_sketch3)
 
@@ -278,13 +284,15 @@ def get_sketch(request: schemas.ThreeObjectSketchInput):
         print(merged_df)
         merged_df["distance"] = 1/3 * merged_df["sketch_vector_x"] + 1/3 * merged_df["sketch_vector_y"] + 1/3 * merged_df["sketch_vector"]
         merged_df = merged_df.drop(['sketch_vector_x','sketch_vector_y','sketch_vector','box_id_x','box_id_y','box_id'], axis=1).sort_values(by=['distance'])
-        response = merged_df.head(500).to_dict(orient="records")
+        response = merged_df.head(knn).to_dict(orient="records")
         print(response)
 
     return {"results": response}
 
 @app.post("/api/searchByColor") 
 def get_sketch(request: schemas.ColorInput):
+    
+    knn = request.max_results
     color_list = []
     c0 = closest_color([request.c0.red, request.c0.green, request.c0.blue])
     c1 = closest_color([request.c1.red, request.c1.green, request.c1.blue])
@@ -303,7 +311,7 @@ def get_sketch(request: schemas.ColorInput):
     color_query = [item for t in color_list for item in t]
 
     with CottontailDBClient('localhost', 1865) as client:
-        result = client.knn(color_query, "tal_db","color_image","dominant_color_vector", ["video_id", "keyframe_id", "start_time","distance"],200)
+        result = client.knn(color_query, "tal_db","color_image","dominant_color_vector", ["video_id", "keyframe_id", "start_time","distance"],knn)
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
@@ -321,13 +329,15 @@ def get_sketch(request: schemas.ColorInput):
 
 @app.post("/api/searchByObjectSketch")
 def get_sketch(request: schemas.ObjectSketchInput):
+    knn = request.max_results
+    
     object_query = request.object
     # (x1,y1) is lower left and (x2,y2) is upper right
     sketch_query = [request.sketch.x1,request.sketch.y1,request.sketch.x2,request.sketch.y2] # list of 4 elements
     
     with CottontailDBClient('localhost', 1865) as client:
         
-        result = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["video_id", "keyframe_id", "distance", "start_time", "object"],[object_query],200)
+        result = client.knn_where(sketch_query,"tal_db","sketch","sketch_vector","object", ["video_id", "keyframe_id", "distance", "start_time", "object"],[object_query],knn)
         result = MessageToDict(list(result)[0])
         response = {}
         columns = result["columns"]
@@ -348,6 +358,7 @@ def get_sketch(request: schemas.ObjectSketchInput):
 
 @app.post("/api/searchByNumberObject")
 def get_sketch(request: schemas.ObjectNumber):
+    
     object_query = request.object
     # (x1,y1) is lower left and (x2,y2) is upper right
     number = request.number # list of 4 elements
@@ -356,7 +367,6 @@ def get_sketch(request: schemas.ObjectNumber):
         
         result = client.select_where("tal_db","sketch",["box_id","video_id", "keyframe_id", "start_time","object"],"object", [request.object])
         response = cottontail_object_number_search(result, number)
-
 
     return {"results": response.to_dict(orient="records")}
 

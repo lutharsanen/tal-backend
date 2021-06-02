@@ -42,6 +42,7 @@ class ColorSketchInput(BaseModel):
     color: RGB
     box: SketchBox
     object: str
+    max_results: int
 
 class ColorInput(BaseModel):
     c0: RGB
@@ -56,16 +57,19 @@ class ColorInput(BaseModel):
     c9: RGB
     c10: RGB
     c11: RGB
+    max_results: int
     
 class ObjectSketchInput(BaseModel):
     object: str
     sketch: SketchBox
+    max_results: int
 
 class DoubleObjectSketchInput(BaseModel):
     object1: str
     sketch1: SketchBox
     object2: str
     sketch2: SketchBox
+    max_results: int
 
 class ThreeObjectSketchInput(BaseModel):
     object1: str
@@ -74,6 +78,7 @@ class ThreeObjectSketchInput(BaseModel):
     sketch2: SketchBox
     object3: str
     sketch3: SketchBox
+    max_results: int
 
 
 class Test(BaseModel):
