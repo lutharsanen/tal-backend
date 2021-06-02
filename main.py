@@ -63,7 +63,7 @@ def get_text(text: str):
                 response[f"{i}"][columns[2]["name"]] = tuple["data"][2]["intData"]
                 response[f"{i}"][columns[3]["name"]] = tuple["data"][3]["floatData"]  
         return {"results": list(response.values())}
-        
+
     elif len(text_list) == 2:
         with CottontailDBClient('localhost', 1865) as client:
             result1_text = client.select_where("tal_db","text_search", ["video_id", "keyframe_id", "start_time", "tesseract_text"], "tesseract_text", [f"%{text_list[0]}%"])
@@ -78,6 +78,25 @@ def get_text(text: str):
             response = merged_df.head(20000000).to_dict(orient="records")
             print(response)
         return {"results": response}
+    
+    elif len(text_list) == 3:
+        with CottontailDBClient('localhost', 1865) as client:
+            result1_text = client.select_where("tal_db","text_search", ["video_id", "keyframe_id", "start_time", "tesseract_text"], "tesseract_text", [f"%{text_list[0]}%"])
+            df_text1 = cottontail_text_where_to_df(result1_text, "tesseract_text")
+            print(df_text1)
+            result2_text = client.select_where("tal_db","text_search", ["video_id", "keyframe_id", "start_time", "tesseract_text"], "tesseract_text", [f"%{text_list[1]}%"])
+            df_text2 = cottontail_text_where_to_df(result2_text, "tesseract_text")
+            print(df_text2)
+            result3_text = client.select_where("tal_db","text_search", ["video_id", "keyframe_id", "start_time", "tesseract_text"], "tesseract_text", [f"%{text_list[2]}%"])
+            df_text3 = cottontail_text_where_to_df(result3_text, "tesseract_text")
+            print(df_text3)
+            merged_df = df_text1.merge(df_text2,on=['video_id',"keyframe_id","start_time"]).merge(df_text3,on=['video_id',"keyframe_id","start_time"])
+            print(merged_df)
+            merged_df = merged_df.drop(['tesseract_text_x', 'tesseract_text_y'], axis=1).sort_values(by=['video_id'])
+            response = merged_df.head(20000000).to_dict(orient="records")
+            print(response)
+        return {"results": response}
+
 
 @app.get("/api/searchByDescription")
 def get_text(text: str):
