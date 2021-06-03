@@ -561,10 +561,32 @@ def get_sketch(request: schemas.ObjectNumber):
     
     with CottontailDBClient('localhost', 1865) as client:
         
-        result = client.select_where("tal_db","sketch",["box_id","video_id", "keyframe_id", "start_time","object"],"object", [request.object])
-        response = cottontail_object_number_search(result, number)
+        #result = client.select_where("tal_db","sketch",["box_id","video_id", "keyframe_id", "start_time","object"],"object", [request.object])
+        #response = cottontail_object_number_search(result, number)
+        
+        test = client.select_count(
+        "tal_db", 
+        "object_count",
+        ["video_id", "keyframe_id", "object", "count","start_time"],
+        'object', 
+        [object_query], 
+        "count", 
+        [number])
 
-    return {"results": response.to_dict(orient="records")}
+        response = {}
+
+        test = MessageToDict(list(test)[0])
+        columns = test["columns"]
+        results = test["tuples"]
+        for i, tuple in enumerate(results):
+            response[f"data_{i}"] = dict()
+            response[f"data_{i}"][columns[0]["name"]] = tuple["data"][0]["stringData"]
+            response[f"data_{i}"][columns[1]["name"]] = tuple["data"][1]["intData"]
+            response[f"data_{i}"][columns[2]["name"]] = tuple["data"][2]["stringData"]
+            response[f"data_{i}"][columns[3]["name"]] = tuple["data"][3]["intData"]
+            response[f"data_{i}"][columns[4]["name"]] = tuple["data"][4]["floatData"]
+
+    return {"results": list(response.values())}
 
 ##################### Simple Get-Request ###################################
 

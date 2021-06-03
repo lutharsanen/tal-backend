@@ -454,16 +454,17 @@ class CottontailDBClient:
         boolean_operand = AtomicBooleanOperand(literals = literals)
         atomic = AtomicBooleanPredicate(
             left = column_where, 
-            op = ComparisonOperator.EQUAL, 
+            op = ComparisonOperator.LIKE, 
             right = boolean_operand)
         where = Where(atomic = atomic)
         # Query
-        sub_query = Query(**from_kwarg, projection = projection, where = where)
-        query_message = QueryMessage(txId=self._tid, query = sub_query)
+        query = Query(**from_kwarg, projection = projection, where = where)
+        query_message = QueryMessage(txId=self._tid, query = query)
         result = self._dql.Query(query_message)
         return result
 
-    def select_where(self, schema, entity, column_names, searched_column, search_words):
+
+    def select_count(self, schema, entity, column_names, object_column, search_words, count_column, count):
         # Base
         schema_name = SchemaName(name = schema)
         entity_name = EntityName(schema=schema_name, name=entity)
@@ -476,62 +477,38 @@ class CottontailDBClient:
             projection_element = Projection.ProjectionElement(column = column)
             projection_elements.append(projection_element)
         projection = Projection(columns  = projection_elements)
-        # Where
-        column_where = ColumnName(entity = entity_name, name = searched_column)
+        # Where 1
+        column_where = ColumnName(entity = entity_name, name = object_column)
         literal = []
         for word in search_words:
             add_literal = Literal(stringData = word)
             literal.append(add_literal)
         literals = Literals(literal = literal)
         boolean_operand = AtomicBooleanOperand(literals = literals)
-        atomic = AtomicBooleanPredicate(
+        c_left = AtomicBooleanPredicate(
             left = column_where, 
-            op = ComparisonOperator.LIKE, 
+            op = ComparisonOperator.EQUAL, 
             right = boolean_operand)
-        where = Where(atomic = atomic)
+        # Where 2
+        column_where = ColumnName(entity = entity_name, name = count_column)
+        literal = []
+        for nr in count:
+            add_literal = Literal(intData = nr)
+            literal.append(add_literal)
+        literals = Literals(literal = literal)
+        boolean_operand = AtomicBooleanOperand(literals = literals)
+        c_right = AtomicBooleanPredicate(
+            left = column_where, 
+            op = ComparisonOperator.GEQUAL, 
+            right = boolean_operand)
+
+        compound = CompoundBooleanPredicate(aleft = c_left, aright = c_right)
+        where = Where(compound = compound)
         # Query
         query = Query(**from_kwarg, projection = projection, where = where)
         query_message = QueryMessage(txId=self._tid, query = query)
         result = self._dql.Query(query_message)
-        return result 
-
-    def select_count(self, schema, entity, column_names, searched_column, search_words):
-        # Base
-        schema_name = SchemaName(name = schema)
-        entity_name = EntityName(schema=schema_name, name=entity)
-        # From
-        from_kwarg = {'from': From(scan=Scan(entity=entity_name))}
-        # Projection
-        projection_elements = []
-        for column_name in column_names:
-            column = ColumnName(entity = entity_name, name = column_name)
-            projection_operation = Projection.ProjectionOperation.COUNT
-            projection_element = Projection.ProjectionElement(column = column)
-            projection_elements.append(projection_element)
-        projection = Projection(op = projection_operation, columns  = projection_elements)
-        # Where
-        column_where = ColumnName(entity = entity_name, name = searched_column)
-        literal = []
-        for word in search_words:
-            add_literal = Literal(stringData = word)
-            literal.append(add_literal)
-        literals = Literals(literal = literal)
-        boolean_operand = AtomicBooleanOperand(literals = literals)
-        atomic = AtomicBooleanPredicate(
-            left = column_where, 
-            op = ComparisonOperator.LIKE, 
-            right = boolean_operand)
-        where = Where(atomic = atomic)
-        # Query
-        from_query = Query(**from_kwarg, projection = projection, where = where)
-        
-        
-        
-        
-        #query_message = QueryMessage(txId=self._tid, query = query)
-        #result = self._dql.Query(query_message)
-        #return result 
-
+        return result
 ####################################################################################
 
     @staticmethod
