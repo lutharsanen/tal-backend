@@ -614,5 +614,3 @@ def all_tags():
             response.append(tuple["data"][0]["stringData"])
 
     return {"results": response}
-
-
